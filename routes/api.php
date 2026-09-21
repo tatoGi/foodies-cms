@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Pos\PosHeartbeatController;
 use App\Http\Controllers\Website\AuthController;
 use App\Http\Controllers\Website\BootstrapController;
 use App\Http\Controllers\Website\CartController;
@@ -22,6 +23,11 @@ use App\Http\Controllers\Website\WishlistController;
 | This file is loaded with the "api" middleware group.
 |
 */
+
+// FoodEase POS -> CMS integration (internal; see docs/INTEGRATION_MASTER_PLAN.md §5)
+Route::prefix('pos/v1')->middleware(\App\Http\Middleware\AuthenticatePosDevice::class)->group(function () {
+    Route::post('/heartbeat', PosHeartbeatController::class)->name('api.pos.heartbeat');
+});
 
 Route::prefix('web')->group(function () {
     Route::prefix('auth')->group(function () {
