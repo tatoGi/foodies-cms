@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,6 +17,11 @@ class Product extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'external_source',
+        'external_id',
+        'is_available',
+        'show_on_menu_board',
+        'product_category_id',
         'sku',
         'brand',
         'cover_image',
@@ -42,6 +48,9 @@ class Product extends Model
     ];
 
     protected $casts = [
+        'external_id' => 'integer',
+        'is_available' => 'boolean',
+        'show_on_menu_board' => 'boolean',
         'price' => 'decimal:2',
         'on_sale' => 'boolean',
         'sale_price' => 'decimal:2',
@@ -66,6 +75,22 @@ class Product extends Model
     public function translations(): HasMany
     {
         return $this->hasMany(ProductTranslation::class, 'product_id');
+    }
+
+    // Not named category(): products.category is a legacy string column.
+    public function productCategory(): BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, 'product_category_id');
+    }
+
+    public function ingredients(): HasMany
+    {
+        return $this->hasMany(ProductIngredient::class);
+    }
+
+    public function addons(): HasMany
+    {
+        return $this->hasMany(ProductAddon::class);
     }
 
     public function orderItems(): HasMany

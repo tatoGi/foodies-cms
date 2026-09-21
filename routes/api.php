@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Pos\PosHeartbeatController;
+use App\Http\Controllers\Pos\PosMenuSnapshotController;
 use App\Http\Controllers\Website\AuthController;
 use App\Http\Controllers\Website\BootstrapController;
 use App\Http\Controllers\Website\CartController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Website\WishlistController;
 // FoodEase POS -> CMS integration (internal; see docs/INTEGRATION_MASTER_PLAN.md §5)
 Route::prefix('pos/v1')->middleware(\App\Http\Middleware\AuthenticatePosDevice::class)->group(function () {
     Route::post('/heartbeat', PosHeartbeatController::class)->name('api.pos.heartbeat');
+    Route::post('/sync/menu/snapshot', PosMenuSnapshotController::class)->name('api.pos.menu.snapshot');
 });
 
 Route::prefix('web')->group(function () {
