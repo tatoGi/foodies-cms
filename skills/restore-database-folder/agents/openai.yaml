@@ -1,0 +1,4 @@
+interface:
+  display_name: "Restore Database Folder"
+  short_description: "Recreate missing Laravel database folder scaffolding."
+  default_prompt: "Use $restore-database-folder to restore the Laravel database directory structure in this project."

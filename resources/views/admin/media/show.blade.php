@@ -1,0 +1,333 @@
+@extends('admin.layouts.app')
+
+@section('title', __('Media Item'))
+@section('page_title', __('Media Item'))
+
+@php
+    $folders = \App\Models\MediaFolder::query()
+        ->orderBy('sort_order')
+        ->orderBy('name')
+        ->get();
+
+    $usage = $media->links()
+        ->latest('created_at')
+        ->limit(50)
+        ->get();
+@endphp
+
+@section('content')
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <div>
+            <h2 class="welcome-title mb-1">{{ __('Media Details') }}</h2>
+            <p class="text-muted mb-0">{{ $media->filename }}</p>
+        </div>
+        <a href="{{ route('admin.media.index') }}" class="btn btn-light-soft">
+            <i class="bi bi-arrow-left me-1"></i>{{ __('Back to Library') }}
+        </a>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4">{{ session('error') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-xl-7">
+            <div class="dashboard-panel premium-shadow h-100">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <i class="bi bi-eye me-2 text-primary"></i>
+                        <span>{{ __('Preview') }}</span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="media-preview">
+                        @if($media->isImage())
+                            <img src="{{ $media->full_url }}" alt="{{ $media->localizedField('alt_text') ?? $media->filename }}">
+                        @elseif($media->isVideo())
+                            <video controls preload="metadata" src="{{ $media->full_url }}"></video>
+                        @elseif($media->isAudio())
+                            <audio controls class="w-100" src="{{ $media->full_url }}"></audio>
+                        @else
+                            <div class="media-preview-fallback">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="media-meta-grid mt-3">
+                        <div class="media-meta-item">
+                            <span class="media-meta-label">{{ __('Type') }}</span>
+                            <span class="media-meta-value">{{ strtoupper((string) $media->type) }}</span>
+                        </div>
+                        <div class="media-meta-item">
+                            <span class="media-meta-label">{{ __('MIME') }}</span>
+                            <span class="media-meta-value">{{ $media->mime_type }}</span>
+                        </div>
+                        <div class="media-meta-item">
+                            <span class="media-meta-label">{{ __('Size') }}</span>
+                            <span class="media-meta-value">{{ $media->human_readable_size }}</span>
+                        </div>
+                        <div class="media-meta-item">
+                            <span class="media-meta-label">{{ __('Dimensions') }}</span>
+                            <span class="media-meta-value">{{ $media->width ?? '-' }} x {{ $media->height ?? '-' }}</span>
+                        </div>
+                        <div class="media-meta-item">
+                            <span class="media-meta-label">{{ __('Folder') }}</span>
+                            <span class="media-meta-value">{{ $media->folder?->name ?? __('Root') }}</span>
+                        </div>
+                        <div class="media-meta-item">
+                            <span class="media-meta-label">{{ __('UUID') }}</span>
+                            <code class="media-meta-code">{{ $media->uuid }}</code>
+                        </div>
+                    </div>
+
+                    <div class="media-url-group mt-3">
+                        <label class="form-label small mb-1">{{ __('File URL') }}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="mediaFileUrl" value="{{ $media->full_url }}" readonly>
+                            <button type="button" class="btn btn-light-soft" id="copyMediaUrlBtn">{{ __('Copy') }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <div class="dashboard-panel premium-shadow h-100">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <i class="bi bi-pencil-square me-2 text-primary"></i>
+                        <span>{{ __('Edit Metadata') }}</span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <form method="POST" action="{{ route('admin.media.update', $media->id) }}" class="row g-3">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="col-12">
+                            <label class="form-label">{{ __('Folder') }}</label>
+                            <select class="form-select" name="folder_id">
+                                <option value="">{{ __('No folder') }}</option>
+                                @foreach($folders as $folder)
+                                    <option value="{{ $folder->id }}" {{ (int) $media->folder_id === (int) $folder->id ? 'selected' : '' }}>
+                                        {{ $folder->path ?: $folder->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ __('Title') }}</label>
+                            <input type="text" class="form-control" name="title" value="{{ old('title', $media->localizedField('title')) }}">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ __('Alt text') }}</label>
+                            <input type="text" class="form-control" name="alt_text" value="{{ old('alt_text', $media->localizedField('alt_text')) }}">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ __('Description') }}</label>
+                            <textarea class="form-control editor-field" name="description" rows="4">{{ old('description', $media->localizedField('description')) }}</textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ __('Sort order') }}</label>
+                            <input type="number" min="0" class="form-control" name="sort_order" value="{{ old('sort_order', (string) $media->sort_order) }}">
+                        </div>
+
+                        <div class="col-12 d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-primary">{{ __('Save Changes') }}</button>
+                            <a href="{{ route('admin.media.download', ['media' => $media->id]) }}" class="btn btn-light-soft">
+                                <i class="bi bi-download me-1"></i>{{ __('Download') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-7">
+            <div class="dashboard-panel premium-shadow overflow-hidden">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <i class="bi bi-link-45deg me-2 text-primary"></i>
+                        <span>{{ __('Usage') }}</span>
+                    </div>
+                </div>
+                <div class="panel-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light-soft">
+                                <tr>
+                                    <th class="ps-4 py-3 text-muted small fw-bold uppercase letter-spacing-1">{{ __('Model') }}</th>
+                                    <th class="py-3 text-muted small fw-bold uppercase letter-spacing-1">{{ __('ID') }}</th>
+                                    <th class="py-3 text-muted small fw-bold uppercase letter-spacing-1">{{ __('Collection') }}</th>
+                                    <th class="pe-4 py-3 text-muted small fw-bold uppercase letter-spacing-1 text-end">{{ __('Linked At') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($usage as $link)
+                                    <tr>
+                                        <td class="ps-4 py-3">{{ class_basename((string) $link->mediable_type) }}</td>
+                                        <td class="py-3">{{ $link->mediable_id }}</td>
+                                        <td class="py-3">{{ $link->collection }}</td>
+                                        <td class="pe-4 py-3 text-end">{{ optional($link->created_at)->toDateTimeString() }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="py-4 text-center text-muted">{{ __('This media item is not linked yet.') }}</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <div class="dashboard-panel premium-shadow h-100">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <i class="bi bi-exclamation-octagon me-2 text-danger"></i>
+                        <span>{{ __('Danger Zone') }}</span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    @if($media->deleted_at)
+                        <form method="POST" action="{{ route('admin.media.restore', ['media' => $media->id]) }}" class="mb-3">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-success w-100">{{ __('Restore') }}</button>
+                        </form>
+
+                        <form method="POST" action="{{ route('admin.media.force-destroy', ['media' => $media->id]) }}" onsubmit="return confirm('{{ __('Delete permanently? This cannot be undone.') }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger w-100">{{ __('Delete Permanently') }}</button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('admin.media.destroy', $media->id) }}" onsubmit="return confirm('{{ __('Move to trash?') }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger w-100">{{ __('Move To Trash') }}</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('styles')
+<style>
+.media-preview {
+    border: 1px solid var(--admin-border);
+    background: var(--admin-surface-2);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+}
+
+.media-preview img,
+.media-preview video {
+    max-height: 460px;
+    width: auto;
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+.media-preview-fallback {
+    color: var(--admin-muted);
+    font-size: 3rem;
+}
+
+.media-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.media-meta-item {
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 8px 10px;
+    background: var(--admin-surface);
+}
+
+.media-meta-label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--admin-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+}
+
+.media-meta-value {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.media-meta-code {
+    display: block;
+    font-size: 0.75rem;
+    word-break: break-all;
+}
+
+.media-url-group .input-group .btn {
+    min-width: 90px;
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const copyBtn = document.getElementById('copyMediaUrlBtn');
+    const input = document.getElementById('mediaFileUrl');
+    const copiedText = @json(__('Copied'));
+
+    if (!copyBtn || !input) {
+        return;
+    }
+
+    copyBtn.addEventListener('click', async () => {
+        const originalText = copyBtn.textContent;
+        try {
+            await navigator.clipboard.writeText(input.value);
+            copyBtn.textContent = copiedText;
+        } catch (e) {
+            input.select();
+            document.execCommand('copy');
+            copyBtn.textContent = copiedText;
+        } finally {
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 1200);
+        }
+    });
+});
+</script>
+@endpush

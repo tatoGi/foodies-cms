@@ -1,0 +1,778 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Http\Requests\Admin\StoreProductRequest;
+use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Models\BlockTypeDefinition;
+use App\Models\Page;
+use App\Models\Product;
+use App\Models\ProductTranslation;
+use App\Repositories\Contracts\BlockTypeRepositoryInterface;
+use App\Repositories\Contracts\LanguageRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+class ProductService
+{
+    public function __construct(
+        private readonly ProductRepositoryInterface $productRepository,
+        private readonly BlockTypeRepositoryInterface $blockTypeRepository,
+        private readonly LanguageRepositoryInterface $languageRepository,
+        private readonly BlockNormalizationService $blockNormalizationService,
+    ) {}
+
+    /** @return array{products: LengthAwarePaginator, currentLocale: string, search:string} */
+    public function buildIndexViewData(string $search = ''): array
+    {
+        return [
+            'products' => $this->productRepository->paginateWithTranslations(10, $search),
+            'currentLocale' => app()->getLocale(),
+            'search' => $search,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    public function buildCreateViewData(): array
+    {
+        $locales = $this->languageRepository->getActiveLocales();
+        $localeCodes = collect($locales)->pluck('code')->map(static fn ($c): string => (string) $c)->values()->all();
+        $defaultLocale = $this->defaultLocaleCode($locales);
+        $selectedLocaleCodes = $this->selectedLocaleCodesFromOldInput($locales, $localeCodes);
+        $blockDefinitions = $this->blockTypeRepository->getEnabledForScope('product');
+        $selectedBlockTypes = $this->normalizeSelectedBlockTypes((array) old('block_types', []), $blockDefinitions);
+        $blockTypeOptions = $this->formatBlockTypeOptions($blockDefinitions);
+        $blockTypeEditors = $this->formatBlockTypeEditors($blockDefinitions, $localeCodes);
+        $blockTypeEditors = $this->applyCreateDefaultsToBlockEditors($blockTypeEditors);
+        $localeBlocks = $this->resolveLocaleBlocks($localeCodes, $selectedBlockTypes, $blockTypeEditors, null);
+        $selectedPageIds = $this->selectedPageIdsFromOldInput([]);
+
+        return [
+            'locales' => $locales,
+            'defaultLocale' => $defaultLocale,
+            'selectedLocaleCodes' => $selectedLocaleCodes,
+            'blockTypes' => $blockTypeOptions,
+            'blockTypeEditors' => $blockTypeEditors,
+            'selectedBlockTypes' => $selectedBlockTypes,
+            'localeBlocks' => $localeBlocks,
+            'availablePages' => $this->availablePages(),
+            'selectedPageIds' => $selectedPageIds,
+            'manualSpecDefaults' => [
+                'dimensions' => '40*60; 45*40; 40*31',
+                'height' => '52 სმ ; 48 სმ ; 43 სმ',
+                'material' => 'ხე',
+                'colors' => 'თეთრი, ყავისფერი',
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $blockTypeEditors
+     * @return array<string, array<string, mixed>>
+     */
+    private function applyCreateDefaultsToBlockEditors(array $blockTypeEditors): array
+    {
+        if (isset($blockTypeEditors['product_specs'])) {
+            $defaultData = (array) ($blockTypeEditors['product_specs']['default_data'] ?? []);
+            if (! isset($defaultData['items']) || ! is_array($defaultData['items']) || $defaultData['items'] === []) {
+                $defaultData['items'] = [
+                    ['label' => 'ზომა', 'value' => '40*60; 45*40; 40*31'],
+                    ['label' => 'სიმაღლე', 'value' => '52 სმ ; 48 სმ ; 43 სმ'],
+                    ['label' => 'მასალა', 'value' => 'ხე'],
+                    ['label' => 'ფერები', 'value' => 'თეთრი, ყავისფერი'],
+                ];
+            }
+            $blockTypeEditors['product_specs']['default_data'] = $defaultData;
+        }
+
+        if (isset($blockTypeEditors['product_intro'])) {
+            $defaultData = (array) ($blockTypeEditors['product_intro']['default_data'] ?? []);
+            if (trim((string) ($defaultData['material'] ?? '')) === '') {
+                $defaultData['material'] = 'ხე';
+            }
+            if (! isset($defaultData['colors']) || ! is_array($defaultData['colors']) || $defaultData['colors'] === []) {
+                $defaultData['colors'] = [
+                    ['value' => '#FFFFFF'],
+                    ['value' => '#8B4513'],
+                ];
+            }
+            $blockTypeEditors['product_intro']['default_data'] = $defaultData;
+        }
+
+        return $blockTypeEditors;
+    }
+
+    /** @return array<string, mixed> */
+    public function buildEditViewData(Product $product): array
+    {
+        $product->load('translations.blocks');
+
+        $locales = $this->languageRepository->getActiveLocales();
+        $localeCodes = collect($locales)->pluck('code')->map(static fn ($c): string => (string) $c)->values()->all();
+        $defaultLocale = $this->defaultLocaleCode($locales);
+        $fallbackSelected = $localeCodes;
+        $selectedLocaleCodes = $this->selectedLocaleCodesFromOldInput($locales, $fallbackSelected);
+        $blockDefinitions = $this->blockTypeRepository->getEnabledForScope('product');
+        $storedBlockTypes = $this->normalizeBlockTypes((array) ($product->block_types ?? []));
+        if ($storedBlockTypes === []) {
+            $storedBlockTypes = $this->resolveBlockTypesFromTranslations($product);
+        }
+        $selectedBlockTypes = $this->normalizeSelectedBlockTypes((array) old('block_types', $storedBlockTypes), $blockDefinitions);
+        $blockTypeOptions = $this->formatBlockTypeOptions($blockDefinitions);
+        $blockTypeEditors = $this->formatBlockTypeEditors($blockDefinitions, $localeCodes);
+        $localeBlocks = $this->resolveLocaleBlocks($localeCodes, $selectedBlockTypes, $blockTypeEditors, $product);
+        $selectedPageIds = $this->selectedPageIdsFromOldInput(
+            $product->pages()->pluck('pages.id')->map(static fn ($id): int => (int) $id)->all()
+        );
+
+        return [
+            'product' => $product,
+            'locales' => $locales,
+            'defaultLocale' => $defaultLocale,
+            'selectedLocaleCodes' => $selectedLocaleCodes,
+            'translations' => $product->translations->keyBy('locale'),
+            'blockTypes' => $blockTypeOptions,
+            'blockTypeEditors' => $blockTypeEditors,
+            'selectedBlockTypes' => $selectedBlockTypes,
+            'localeBlocks' => $localeBlocks,
+            'availablePages' => $this->availablePages(),
+            'selectedPageIds' => $selectedPageIds,
+            'manualSpecDefaults' => $this->resolveManualSpecDefaults($product, $localeCodes),
+        ];
+    }
+
+    public function create(StoreProductRequest $request): Product
+    {
+        return DB::transaction(function () use ($request): Product {
+            $product = $this->productRepository->create([
+                'sort_order' => $this->productRepository->nextSortOrder(),
+                'sku' => trim((string) $request->input('sku', '')),
+                'brand' => trim((string) $request->input('brand', '')) ?: null,
+                'price' => (float) $request->input('price', 0),
+                'on_sale' => $request->boolean('on_sale'),
+                'sale_price' => $request->input('sale_price') !== null && $request->input('sale_price') !== '' ? (float) $request->input('sale_price') : null,
+                'category' => $this->resolveFallbackCategory((array) $request->input('categories', [])),
+                'stock' => (int) $request->input('stock', 0),
+                'is_active' => $request->boolean('is_active', true),
+                'cover_image' => trim((string) $request->input('cover_image', '')) ?: null,
+                'colors' => (array) $request->input('colors', []) ?: [],
+                'block_types' => $this->normalizeBlockTypes((array) $request->input('block_types', [])),
+                'is_featured' => $request->boolean('is_featured'),
+                'show_in_reels' => $request->boolean('show_in_reels'),
+                'published' => $request->boolean('published'),
+                'published_at' => $request->input('published_at') ?: null,
+            ]);
+
+            $this->syncTranslations(
+                $product,
+                (array) $request->input('names', []),
+                (array) $request->input('categories', []),
+                (array) $request->input('slugs', []),
+                (array) $request->input('descriptions', []),
+                (array) $request->input('meta_titles', []),
+                (array) $request->input('meta_descriptions', []),
+                (array) $request->input('keywords', []),
+                (array) $request->input('focus_keywords', []),
+                (array) $request->input('canonical_urls', []),
+                (array) $request->input('blocks', []),
+                (array) $request->file('blocks', []),
+                [
+                    'dimensions' => trim((string) $request->input('spec_dimensions', '')),
+                    'height' => trim((string) $request->input('spec_height', '')),
+                    'material' => trim((string) $request->input('spec_material', '')),
+                    'colors' => trim((string) $request->input('spec_colors', '')),
+                ]
+            );
+            $product->pages()->sync(
+                $this->normalizeSelectedPageIds((array) $request->input('page_ids', []))
+            );
+
+            return $product;
+        });
+    }
+
+    public function update(UpdateProductRequest $request, Product $product): Product
+    {
+        return DB::transaction(function () use ($request, $product): Product {
+            $this->productRepository->update($product, [
+                'sku' => trim((string) $request->input('sku', '')),
+                'brand' => trim((string) $request->input('brand', '')) ?: null,
+                'price' => (float) $request->input('price', 0),
+                'on_sale' => $request->boolean('on_sale'),
+                'sale_price' => $request->input('sale_price') !== null && $request->input('sale_price') !== '' ? (float) $request->input('sale_price') : null,
+                'category' => $this->resolveFallbackCategory((array) $request->input('categories', [])),
+                'stock' => (int) $request->input('stock', 0),
+                'is_active' => $request->boolean('is_active', true),
+                'cover_image' => trim((string) $request->input('cover_image', '')) ?: null,
+                'colors' => (array) $request->input('colors', []) ?: [],
+                'block_types' => $this->normalizeBlockTypes((array) $request->input('block_types', [])),
+                'is_featured' => $request->boolean('is_featured'),
+                'show_in_reels' => $request->boolean('show_in_reels'),
+                'published' => $request->boolean('published'),
+                'published_at' => $request->input('published_at') ?: null,
+            ]);
+
+            $this->syncTranslations(
+                $product,
+                (array) $request->input('names', []),
+                (array) $request->input('categories', []),
+                (array) $request->input('slugs', []),
+                (array) $request->input('descriptions', []),
+                (array) $request->input('meta_titles', []),
+                (array) $request->input('meta_descriptions', []),
+                (array) $request->input('keywords', []),
+                (array) $request->input('focus_keywords', []),
+                (array) $request->input('canonical_urls', []),
+                (array) $request->input('blocks', []),
+                (array) $request->file('blocks', []),
+                [
+                    'dimensions' => trim((string) $request->input('spec_dimensions', '')),
+                    'height' => trim((string) $request->input('spec_height', '')),
+                    'material' => trim((string) $request->input('spec_material', '')),
+                    'colors' => trim((string) $request->input('spec_colors', '')),
+                ]
+            );
+            $product->pages()->sync(
+                $this->normalizeSelectedPageIds((array) $request->input('page_ids', []))
+            );
+
+            return $product;
+        });
+    }
+
+    public function delete(Product $product): void
+    {
+        $this->productRepository->delete($product);
+    }
+
+    public function reorder(array $orderedIds, int $page = 1, int $perPage = 15): void
+    {
+        $this->productRepository->reorderByIds($orderedIds, $page, $perPage);
+    }
+
+    private function syncTranslations(
+        Product $product,
+        array $names,
+        array $categories,
+        array $slugs,
+        array $descriptions,
+        array $metaTitles,
+        array $metaDescriptions,
+        array $keywords,
+        array $focusKeywords,
+        array $canonicalUrls,
+        array $blocksByLocale,
+        array $blockFilesByLocale,
+        array $manualSpecs = []
+    ): void {
+        $localeCodes = collect($this->languageRepository->getActiveLocales())->pluck('code')->map(static fn ($l): string => (string) $l)->values();
+        $selectedBlockTypes = $this->normalizeBlockTypes((array) ($product->block_types ?? []));
+        $blockDefinitions = $this->blockTypeRepository->getEnabledForScope('product')
+            ->keyBy(static fn (BlockTypeDefinition $bt): string => (string) $bt->key);
+
+        $handledLocales = [];
+        foreach ($localeCodes as $locale) {
+            $name = trim((string) ($names[$locale] ?? ''));
+            $category = trim((string) ($categories[$locale] ?? ''));
+            $slug = trim((string) ($slugs[$locale] ?? ''));
+            $content = trim((string) ($descriptions[$locale] ?? ''));
+            $metaTitle = trim((string) ($metaTitles[$locale] ?? ''));
+            $metaDesc = trim((string) ($metaDescriptions[$locale] ?? ''));
+            $keyword = trim((string) ($keywords[$locale] ?? ''));
+            $focusKeyword = trim((string) ($focusKeywords[$locale] ?? ''));
+            $canonicalUrl = trim((string) ($canonicalUrls[$locale] ?? ''));
+
+            if ($name !== '' || $slug !== '') {
+                $translation = $product->translations()->updateOrCreate(
+                    ['locale' => $locale],
+                    [
+                        'title' => $name,
+                        'category' => $category !== '' ? $category : null,
+                        'slug' => $slug,
+                        'content' => $content !== '' ? $content : null,
+                        'meta_title' => $metaTitle !== '' ? $metaTitle : null,
+                        'meta_description' => $metaDesc !== '' ? $metaDesc : null,
+                        'keywords' => $keyword !== '' ? $keyword : null,
+                        'focus_keyword' => $focusKeyword !== '' ? $focusKeyword : null,
+                        'canonical_url' => $canonicalUrl !== '' ? $canonicalUrl : null,
+                    ]
+                );
+                $this->syncTranslationBlocks(
+                    $translation,
+                    (array) ($blocksByLocale[$locale] ?? []),
+                    (array) ($blockFilesByLocale[$locale] ?? []),
+                    $selectedBlockTypes,
+                    $blockDefinitions,
+                    $manualSpecs
+                );
+
+                $handledLocales[] = $locale;
+            }
+        }
+
+        $product->translations()->whereNotIn('locale', $handledLocales)->delete();
+    }
+
+    /** @param Collection<string, BlockTypeDefinition> $blockDefinitions */
+    private function syncTranslationBlocks(
+        ProductTranslation $translation,
+        array $localeBlocks,
+        array $localeBlockFiles,
+        array $selectedBlockTypes,
+        Collection $blockDefinitions,
+        array $manualSpecs = []
+    ): void {
+        $existingBlocksByType = $translation->blocks
+            ->groupBy(static fn ($block): string => (string) $block->type)
+            ->map(static fn (Collection $items): Collection => $items->sortBy('sort_order')->values());
+        $availableTypeCounts = array_count_values($selectedBlockTypes);
+        $typeOffsets = [];
+
+        $normalizedBlocks = collect($localeBlocks)
+            ->map(function ($payload, $instanceKey) use (
+                $localeBlockFiles,
+                $blockDefinitions,
+                $existingBlocksByType,
+                &$availableTypeCounts,
+                &$typeOffsets
+            ): ?array {
+                if (! is_array($payload)) {
+                    return null;
+                }
+
+                $blockKey = trim((string) ($payload['type'] ?? $payload['key'] ?? ''));
+                if ($blockKey === '' || ! isset($availableTypeCounts[$blockKey]) || $availableTypeCounts[$blockKey] < 1) {
+                    return null;
+                }
+
+                $definition = $blockDefinitions->get($blockKey);
+                if (! $definition instanceof BlockTypeDefinition) {
+                    return null;
+                }
+
+                $availableTypeCounts[$blockKey]--;
+                $instanceKey = trim((string) ($payload['instance_key'] ?? $instanceKey));
+                $instanceFiles = $instanceKey !== '' ? (array) ($localeBlockFiles[$instanceKey] ?? []) : [];
+                $typeOffsets[$blockKey] = ($typeOffsets[$blockKey] ?? 0);
+                $existingBlock = $existingBlocksByType->get($blockKey)?->get($typeOffsets[$blockKey]);
+                $typeOffsets[$blockKey]++;
+                $existingData = is_object($existingBlock) ? (array) ($existingBlock->data ?? []) : [];
+
+                return [
+                    'type' => $blockKey,
+                    'sort_order' => (int) ($payload['sort_order'] ?? 0),
+                    'data' => $this->blockNormalizationService->normalizeBlockData(
+                        (array) ($payload['data'] ?? []),
+                        (array) ($payload['remove'] ?? []),
+                        (array) ($payload['remove_items'] ?? []),
+                        (array) ($instanceFiles['files'] ?? []),
+                        $definition,
+                        $existingData
+                    ),
+                ];
+            })
+            ->filter(static fn (?array $block): bool => $block !== null)
+            ->sortBy('sort_order')
+            ->values()
+            ->all();
+
+        $normalizedBlocks = $this->applyManualSpecsToBlocks($normalizedBlocks, $manualSpecs);
+
+        $translation->blocks()->delete();
+        foreach (collect($normalizedBlocks)->values() as $position => $block) {
+            $translation->blocks()->create([
+                'type' => (string) $block['type'],
+                'data' => (array) $block['data'],
+                'sort_order' => $position,
+            ]);
+        }
+    }
+
+    /**
+     * @param  array<int, array{type:string,sort_order:int,data:array}>  $blocks
+     * @param  array<string, string>  $manualSpecs
+     * @return array<int, array{type:string,sort_order:int,data:array}>
+     */
+    private function applyManualSpecsToBlocks(array $blocks, array $manualSpecs): array
+    {
+        $labelToValue = [
+            'ზომა' => trim((string) ($manualSpecs['dimensions'] ?? '')),
+            'სიმაღლე' => trim((string) ($manualSpecs['height'] ?? '')),
+            'მასალა' => trim((string) ($manualSpecs['material'] ?? '')),
+            'ფერები' => trim((string) ($manualSpecs['colors'] ?? '')),
+        ];
+
+        $labelToValue = array_filter($labelToValue, static fn (string $value): bool => $value !== '');
+        if ($labelToValue === []) {
+            return $blocks;
+        }
+
+        $specIndex = collect($blocks)->search(
+            static fn (array $block): bool => (string) ($block['type'] ?? '') === 'product_specs'
+        );
+
+        if ($specIndex === false) {
+            $blocks[] = [
+                'type' => 'product_specs',
+                'sort_order' => count($blocks),
+                'data' => ['items' => []],
+            ];
+            $specIndex = count($blocks) - 1;
+        }
+
+        $items = collect((array) data_get($blocks[$specIndex], 'data.items', []))
+            ->filter(static fn ($item): bool => is_array($item))
+            ->map(static fn (array $item): array => [
+                'label' => trim((string) ($item['label'] ?? '')),
+                'value' => trim((string) ($item['value'] ?? '')),
+            ])
+            ->filter(static fn (array $item): bool => $item['label'] !== '')
+            ->values();
+
+        $normalized = [];
+        foreach ($items as $item) {
+            $normalized[$item['label']] = $item['value'];
+        }
+        foreach ($labelToValue as $label => $value) {
+            $normalized[$label] = $value;
+        }
+
+        $blocks[$specIndex]['data']['items'] = collect($normalized)
+            ->map(static fn (string $value, string $label): array => ['label' => $label, 'value' => $value])
+            ->values()
+            ->all();
+
+        return $blocks;
+    }
+
+    /**
+     * @param  array<int, string>  $localeCodes
+     * @return array{dimensions:string,height:string,material:string,colors:string}
+     */
+    private function resolveManualSpecDefaults(Product $product, array $localeCodes): array
+    {
+        $translations = $product->translations->keyBy('locale');
+        $fallbackTranslation = $product->translations->first();
+
+        $translation = null;
+        foreach ($localeCodes as $localeCode) {
+            $candidate = $translations->get($localeCode);
+            if ($candidate instanceof ProductTranslation) {
+                $translation = $candidate;
+                break;
+            }
+        }
+        if (! $translation instanceof ProductTranslation) {
+            $translation = $fallbackTranslation;
+        }
+
+        $specItems = collect($translation?->blocks ?? [])
+            ->first(static fn ($block): bool => (string) ($block->type ?? '') === 'product_specs');
+
+        $items = collect((array) data_get($specItems, 'data.items', []))
+            ->filter(static fn ($item): bool => is_array($item))
+            ->mapWithKeys(static fn (array $item): array => [
+                trim((string) ($item['label'] ?? '')) => trim((string) ($item['value'] ?? '')),
+            ]);
+
+        return [
+            'dimensions' => (string) ($items->get('ზომა', '')),
+            'height' => (string) ($items->get('სიმაღლე', '')),
+            'material' => (string) ($items->get('მასალა', '')),
+            'colors' => (string) ($items->get('ფერები', '')),
+        ];
+    }
+
+    /** @param Collection<int, BlockTypeDefinition> $definitions */
+    private function formatBlockTypeOptions(Collection $definitions): array
+    {
+        $currentLocale = app()->getLocale();
+
+        return $definitions->map(static function (BlockTypeDefinition $bt) use ($currentLocale): array {
+            $labels = (array) data_get($bt->schema, 'translations.labels', []);
+            $descriptions = (array) data_get($bt->schema, 'translations.descriptions', []);
+            $label = $labels[$currentLocale] ?? collect($labels)->first() ?? $bt->label;
+            $description = $descriptions[$currentLocale] ?? collect($descriptions)->first() ?? $bt->description;
+
+            return [
+                'key' => (string) $bt->key,
+                'label' => (string) $label,
+                'description' => $description !== null && $description !== '' ? (string) $description : null,
+                'icon' => (string) ($bt->icon ?: 'bi-box'),
+            ];
+        })->values()->all();
+    }
+
+    private function formatBlockTypeEditors(Collection $definitions, array $localeCodes): array
+    {
+        return $definitions->mapWithKeys(function (BlockTypeDefinition $bt) use ($localeCodes): array {
+            $fields = collect((array) data_get($bt->schema, 'fields', []))
+                ->map(static function (array $field) use ($localeCodes): array {
+                    $fieldKey = trim((string) ($field['key'] ?? ''));
+                    $labels = (array) ($field['labels'] ?? []);
+                    $helps = (array) ($field['helps'] ?? []);
+
+                    $localizedLabels = [];
+                    $localizedHelps = [];
+                    foreach ($localeCodes as $code) {
+                        $localizedLabels[$code] = trim((string) ($labels[$code] ?? ''));
+                        $localizedHelps[$code] = trim((string) ($helps[$code] ?? ''));
+                    }
+
+                    $normalizedField = [
+                        'key' => $fieldKey,
+                        'type' => trim((string) ($field['type'] ?? 'text')),
+                        'label' => trim((string) ($field['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)))),
+                        'labels' => $localizedLabels,
+                        'help' => trim((string) ($field['help'] ?? '')),
+                        'helps' => $localizedHelps,
+                    ];
+
+                    if (isset($field['options']) && is_array($field['options'])) {
+                        $normalizedField['options'] = $field['options'];
+                    }
+
+                    if (($normalizedField['type'] ?? '') === 'repeater') {
+                        $normalizedField['fields'] = (array) ($field['fields'] ?? []);
+                        $normalizedField['add_button_label'] = (string) ($field['add_button_label'] ?? 'Add item');
+                        $normalizedField['add_button_labels'] = (array) ($field['add_button_labels'] ?? []);
+                    }
+
+                    return $normalizedField;
+                })
+                ->filter(static fn (array $f): bool => (string) $f['key'] !== '')
+                ->values()->all();
+
+            return [
+                (string) $bt->key => [
+                    'key' => (string) $bt->key,
+                    'label' => (string) $bt->label,
+                    'description' => $bt->description !== null ? (string) $bt->description : null,
+                    'icon' => (string) ($bt->icon ?: 'bi-box'),
+                    'default_data' => (array) ($bt->default_data ?? []),
+                    'fields' => $fields,
+                ],
+            ];
+        })->all();
+    }
+
+    private function resolveLocaleBlocks(
+        array $localeCodes,
+        array $selectedBlockTypes,
+        array $blockTypeEditors,
+        ?Product $product
+    ): array {
+        $oldBlocks = old('blocks');
+        $hasOldBlocks = is_array($oldBlocks) && $oldBlocks !== [];
+        $productTranslations = $product?->translations->keyBy('locale');
+        $resolved = [];
+
+        foreach ($localeCodes as $localeCode) {
+            $localeEntries = [];
+            $translation = $productTranslations?->get($localeCode);
+            $translationBlocksByType = $translation instanceof ProductTranslation
+                ? $translation->blocks->sortBy('sort_order')->groupBy('type')
+                : collect();
+            $typeOffsets = [];
+            $oldTypeOffsets = [];
+
+            foreach ($selectedBlockTypes as $index => $blockKey) {
+                $editor = $blockTypeEditors[$blockKey] ?? null;
+                if (! is_array($editor)) {
+                    continue;
+                }
+
+                $defaultData = (array) ($editor['default_data'] ?? []);
+                $oldOccurrence = $oldTypeOffsets[$blockKey] ?? 0;
+                $oldTypeOffsets[$blockKey] = $oldOccurrence + 1;
+                $instanceKey = sprintf('%s__%d', $blockKey, $index);
+                $payload = $hasOldBlocks
+                    ? $this->resolveOldLocaleBlockPayload((array) ($oldBlocks[$localeCode] ?? []), $blockKey, $oldOccurrence)
+                    : [];
+
+                if ($translation instanceof ProductTranslation && ($payload === [] || ! $this->blockDataHasContent((array) ($payload['data'] ?? [])))) {
+                    $existingBlock = $translationBlocksByType->get($blockKey)?->get($typeOffsets[$blockKey] ?? 0);
+                    $typeOffsets[$blockKey] = ($typeOffsets[$blockKey] ?? 0) + 1;
+
+                    if ($existingBlock !== null) {
+                        $payload = ['sort_order' => (int) $existingBlock->sort_order, 'data' => (array) ($existingBlock->data ?? [])];
+                    }
+                }
+
+                if ($productTranslations !== null && ($payload === [] || ! $this->blockDataHasContent((array) ($payload['data'] ?? [])))) {
+                    $fallbackBlock = $productTranslations
+                        ->flatMap(static fn (ProductTranslation $t) => $t->blocks)
+                        ->first(function ($item) use ($blockKey): bool {
+                            return (string) $item->type === $blockKey && $this->blockDataHasContent((array) ($item->data ?? []));
+                        });
+
+                    if ($fallbackBlock !== null) {
+                        $payload = ['sort_order' => (int) ($payload['sort_order'] ?? $index), 'data' => (array) ($fallbackBlock->data ?? [])];
+                    }
+                }
+
+                $sortOrder = (int) ($payload['sort_order'] ?? $index);
+                $submittedData = (array) ($payload['data'] ?? []);
+                $data = [];
+                foreach ((array) ($editor['fields'] ?? []) as $field) {
+                    $fieldKey = (string) ($field['key'] ?? '');
+                    if ($fieldKey === '') {
+                        continue;
+                    }
+                    $data[$fieldKey] = $submittedData[$fieldKey] ?? ($defaultData[$fieldKey] ?? '');
+                }
+
+                $localeEntries[] = ['instance_key' => $instanceKey, 'key' => $blockKey, 'sort_order' => $sortOrder, 'data' => $data];
+            }
+
+            $resolved[$localeCode] = collect($localeEntries)->sortBy('sort_order')->values()->all();
+        }
+
+        return $resolved;
+    }
+
+    private function resolveBlockTypesFromTranslations(Product $product): array
+    {
+        $primaryTranslation = $product->translations
+            ->first(static fn (ProductTranslation $translation): bool => $translation->blocks->isNotEmpty());
+
+        if ($primaryTranslation instanceof ProductTranslation) {
+            return $primaryTranslation->blocks
+                ->sortBy('sort_order')
+                ->pluck('type')
+                ->map(static fn ($type): string => trim((string) $type))
+                ->filter(static fn (string $type): bool => $type !== '')
+                ->values()
+                ->all();
+        }
+
+        return $product->translations
+            ->flatMap(static fn (ProductTranslation $t) => $t->blocks->sortBy('sort_order')->pluck('type'))
+            ->map(static fn ($type): string => trim((string) $type))
+            ->filter(static fn (string $type): bool => $type !== '')
+            ->values()->all();
+    }
+
+    private function blockDataHasContent(array $data): bool
+    {
+        foreach ($data as $value) {
+            if (is_array($value)) {
+                if ($value !== []) {
+                    return true;
+                }
+
+                continue;
+            }
+            if (trim((string) $value) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function normalizeSelectedBlockTypes(array $selected, Collection $definitions): array
+    {
+        $allowed = $definitions->pluck('key')->map(static fn ($k): string => (string) $k);
+
+        return collect($selected)
+            ->map(static fn ($v): string => trim((string) $v))
+            ->filter(static fn (string $v): bool => $v !== '' && $allowed->contains($v))
+            ->values()->all();
+    }
+
+    private function normalizeBlockTypes(array $blockTypes): array
+    {
+        return collect($blockTypes)
+            ->map(static fn ($v): string => trim((string) $v))
+            ->filter(static fn (string $v): bool => $v !== '')
+            ->values()->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $localeBlocks
+     * @return array<string, mixed>
+     */
+    private function resolveOldLocaleBlockPayload(array $localeBlocks, string $blockKey, int $occurrence): array
+    {
+        $matches = collect($localeBlocks)
+            ->filter(static fn ($payload): bool => is_array($payload))
+            ->map(static fn (array $payload): array => $payload)
+            ->filter(static fn (array $payload) => trim((string) ($payload['type'] ?? $payload['key'] ?? '')) === $blockKey)
+            ->sortBy(static fn (array $payload): int => (int) ($payload['sort_order'] ?? 0))
+            ->values();
+
+        return (array) ($matches->get($occurrence) ?? []);
+    }
+
+    private function defaultLocaleCode(array $locales): string
+    {
+        $default = collect($locales)->firstWhere('is_default', true);
+        if (is_array($default) && isset($default['code'])) {
+            return (string) $default['code'];
+        }
+
+        return (string) (collect($locales)->first()['code'] ?? app()->getLocale());
+    }
+
+    private function selectedLocaleCodesFromOldInput(array $locales, array $fallback): array
+    {
+        $allowed = collect($locales)->pluck('code')->map(static fn ($c): string => (string) $c)->values();
+        $oldNames = collect(array_keys((array) old('names', [])))->map(static fn ($k): string => (string) $k);
+        $oldSlugs = collect(array_keys((array) old('slugs', [])))->map(static fn ($k): string => (string) $k);
+        $fromOld = $oldNames->merge($oldSlugs)->filter(static fn (string $c): bool => $allowed->contains($c))->unique()->values();
+
+        if ($fromOld->isNotEmpty()) {
+            return $fromOld->all();
+        }
+
+        return collect($fallback)->map(static fn ($c): string => (string) $c)->filter(static fn (string $c): bool => $allowed->contains($c))->unique()->values()->all();
+    }
+
+    private function availablePages(): array
+    {
+        $currentLocale = (string) app()->getLocale();
+
+        return Page::query()->with('translations')->orderBy('sort_order')->orderBy('id')->get()
+            ->map(static function (Page $page) use ($currentLocale): array {
+                $localized = $page->translations->firstWhere('locale', $currentLocale);
+                $fallback = $page->translations->first();
+
+                return [
+                    'id' => (int) $page->id,
+                    'title' => (string) ($localized?->title ?? $fallback?->title ?? '#'.$page->id),
+                    'slug' => (string) ($localized?->slug ?? $fallback?->slug ?? ''),
+                    'published' => (bool) $page->published,
+                ];
+            })->values()->all();
+    }
+
+    private function selectedPageIdsFromOldInput(array $fallback): array
+    {
+        $fromOld = old('page_ids');
+        if (is_array($fromOld)) {
+            return $this->normalizeSelectedPageIds($fromOld);
+        }
+
+        return $this->normalizeSelectedPageIds($fallback);
+    }
+
+    private function normalizeSelectedPageIds(array $pageIds): array
+    {
+        return collect($pageIds)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()->values()->all();
+    }
+
+    private function resolveFallbackCategory(array $categories): ?string
+    {
+        return collect($categories)
+            ->map(static fn ($value): string => trim((string) $value))
+            ->first(static fn (string $value): bool => $value !== '');
+    }
+}

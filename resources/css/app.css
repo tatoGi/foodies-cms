@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    img,
+    video,
+    iframe,
+    svg,
+    canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    iframe,
+    video {
+        width: 100%;
+    }
+
+    a,
+    button,
+    [role='button'],
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+    }
+}
+
+@layer components {
+    .site-container {
+        width: min(100%, 80rem);
+        margin-inline: auto;
+        padding-inline: 1rem;
+    }
+
+    .site-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .site-menu {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .mobile-menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    @media (max-width: 767.98px) {
+        .site-menu {
+            display: none;
+        }
+
+        .site-menu.is-open {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+            gap: 0.5rem;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .mobile-menu-toggle {
+            display: none;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .site-container {
+            padding-inline: 1.5rem;
+        }
+    }
+
+    @media (min-width: 1280px) {
+        .site-container {
+            padding-inline: 2rem;
+        }
+    }
+
+    @media (min-width: 1536px) {
+        .site-container {
+            max-width: 96rem;
+        }
+    }
+}
