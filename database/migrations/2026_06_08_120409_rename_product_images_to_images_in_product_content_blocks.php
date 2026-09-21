@@ -16,6 +16,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // JSON_CONTAINS_PATH is MySQL-only; other drivers (SQLite in tests) have no legacy rows to convert.
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::table('product_content_blocks')
             ->where('type', 'product_gallery')
             ->whereRaw("JSON_CONTAINS_PATH(data, 'one', '$.product_images')")
@@ -38,6 +43,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        // JSON_CONTAINS_PATH is MySQL-only; other drivers (SQLite in tests) have no legacy rows to convert.
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::table('product_content_blocks')
             ->where('type', 'product_gallery')
             ->whereRaw("JSON_CONTAINS_PATH(data, 'one', '$.images')")
