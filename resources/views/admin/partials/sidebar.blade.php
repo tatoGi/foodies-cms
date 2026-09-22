@@ -31,6 +31,10 @@
             <i class="bi bi-box-seam-fill"></i>
             <span class="admin-nav-label">{{ __('Products') }}</span>
         </a>
+        <a class="admin-nav-link {{ request()->routeIs('admin.pos-devices.*') ? 'is-active' : '' }}" href="{{ route('admin.pos-devices.index') }}">
+            <i class="bi bi-hdd-network"></i>
+            <span class="admin-nav-label">{{ __('POS devices') }}</span>
+        </a>
         <a class="admin-nav-link {{ request()->routeIs('admin.posts.*') ? 'is-active' : '' }}" href="{{ route('admin.posts.index') }}">
             <i class="bi bi-pen-fill"></i>
             <span class="admin-nav-label">{{ __('Posts') }}</span>

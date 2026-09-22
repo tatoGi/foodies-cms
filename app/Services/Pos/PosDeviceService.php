@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Pos;
 
 use App\Models\PosDevice;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class PosDeviceService
@@ -26,6 +27,12 @@ class PosDeviceService
         ]);
 
         return ['device' => $device, 'token' => $token, 'secret' => $secret];
+    }
+
+    /** @return Collection<int, PosDevice> */
+    public function listForAdmin(): Collection
+    {
+        return PosDevice::query()->orderBy('name')->get();
     }
 
     public function findActiveByToken(string $token): ?PosDevice

@@ -22,8 +22,19 @@
 @section('content')
     <div class="row mb-5">
         <div class="col-md-8">
-            <h2 class="welcome-title mb-1">{{ __('Edit Product') }}</h2>
-            <p class="text-muted mb-0">{{ __('Update product data, blocks and SEO.') }}</p>
+            <h2 class="welcome-title mb-1 d-flex align-items-center gap-2">
+                {{ __('Edit Product') }}
+                @if($product->isSyncedFromPos())
+                    <span class="badge bg-dark" style="font-size:0.7rem;">POS</span>
+                @endif
+            </h2>
+            <p class="text-muted mb-0">
+                @if($product->isSyncedFromPos())
+                    სინქრონიზებულია POS-დან. ფასი, კოდი, სახელი და ხელმისაწვდომობა იცვლება მხოლოდ სალაროში.
+                @else
+                    {{ __('Update product data, blocks and SEO.') }}
+                @endif
+            </p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
             <a href="{{ route('admin.products.index') }}" class="btn btn-light-soft px-4 py-2 rounded-3 d-inline-flex align-items-center gap-2">
@@ -71,7 +82,7 @@
                                 <div class="row g-3">
                                     <div class="col-md-6 col-xl-3">
                                         <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('SKU') }} <span class="text-danger">*</span></label>
-                                        <input type="text" name="sku" class="form-control @error('sku') is-invalid @enderror" value="{{ old('sku', $product->sku) }}" placeholder="PROD-001">
+                                        <input type="text" name="sku" class="form-control @error('sku') is-invalid @enderror" value="{{ old('sku', $product->sku) }}" placeholder="PROD-001" @readonly($product->isSyncedFromPos())>
                                         @error('sku')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="col-md-6 col-xl-3">
@@ -81,7 +92,7 @@
                                     </div>
                                     <div class="col-md-6 col-xl-3">
                                         <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Price') }} (GEL) <span class="text-danger">*</span></label>
-                                        <input type="number" name="price" step="0.01" min="0" class="form-control @error('price') is-invalid @enderror" value="{{ old('price', $product->price) }}">
+                                        <input type="number" name="price" step="0.01" min="0" class="form-control @error('price') is-invalid @enderror" value="{{ old('price', $product->price) }}" @readonly($product->isSyncedFromPos())>
                                         @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="col-md-6 col-xl-3">
@@ -165,7 +176,7 @@
                                         <label class="form-check-label fw-bold" for="show_in_reels">{{ __('Show in Reels') }}</label>
                                     </div>
                                     <div class="form-check form-switch p-0 ps-5 mb-0">
-                                        <input class="form-check-input ms-n5" type="checkbox" id="is_active" name="is_active" value="1" @checked(old('is_active', $product->is_active))>
+                                        <input class="form-check-input ms-n5" type="checkbox" id="is_active" name="is_active" value="1" @checked(old('is_active', $product->is_active)) @disabled($product->isSyncedFromPos())>
                                         <label class="form-check-label fw-bold" for="is_active">{{ __('Active') }}</label>
                                     </div>
                                     <div class="form-check form-switch p-0 ps-5 mb-0">
@@ -193,6 +204,7 @@
                                                    id="name-{{ $locale['code'] }}"
                                                    class="form-control @error('names.'.$locale['code']) is-invalid @enderror"
                                                    {{ $isSelected ? '' : 'disabled' }}
+                                                   @readonly($product->isSyncedFromPos())
                                                    value="{{ old('names.'.$locale['code'], $translations[$locale['code']]->title ?? '') }}">
                                             @error('names.'.$locale['code'])
                                                 <div class="invalid-feedback d-block">{{ $message }}</div>

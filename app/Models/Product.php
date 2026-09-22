@@ -72,6 +72,11 @@ class Product extends Model
         'rental_end_date' => 'date',
     ];
 
+    public function isSyncedFromPos(): bool
+    {
+        return $this->external_source === 'pos';
+    }
+
     public function translations(): HasMany
     {
         return $this->hasMany(ProductTranslation::class, 'product_id');

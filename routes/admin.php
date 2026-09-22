@@ -10,14 +10,15 @@ use App\Http\Controllers\Admin\GeneralSettingController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MediaFolderController;
-use App\Http\Controllers\Admin\RegisteredUserController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PageTemplateController;
+use App\Http\Controllers\Admin\PosDeviceController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReelController;
+use App\Http\Controllers\Admin\RegisteredUserController;
 use App\Http\Controllers\Admin\SalesStatisticsController;
 use Illuminate\Support\Facades\Route;
 
@@ -93,6 +94,7 @@ Route::post('products/ai/seo', [AdminAiController::class, 'generateProductDraftS
 Route::post('products/{product}/ai/translate', [AdminAiController::class, 'translateProduct'])->name('products.ai.translate');
 Route::post('products/{product}/ai/seo', [AdminAiController::class, 'generateProductSeo'])->name('products.ai.seo');
 Route::resource('products', ProductController::class)->except('show');
+Route::get('pos-devices', [PosDeviceController::class, 'index'])->name('pos-devices.index');
 Route::post('reels/reorder', [ReelController::class, 'reorder'])->name('reels.reorder');
 Route::post('reels/ai/translate', [AdminAiController::class, 'translateReelDraft'])->name('reels.ai.translate-draft');
 Route::post('reels/{reel}/ai/translate', [AdminAiController::class, 'translateReel'])->name('reels.ai.translate');

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\GeneralSetting;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
 
 class GeneralSettingService
 {
@@ -23,7 +24,7 @@ class GeneralSettingService
 
         $settings = GeneralSetting::query()
             ->whereIn('key', [
-                'header_logo', 'footer_logo', 'footer_contact',
+                'header_logo', 'footer_logo', 'breadcrumb_image', 'breadcrumb_color', 'footer_contact',
                 'social_links', 'contact_phone', 'contact_email', 'contact_address',
             ])
             ->get()
@@ -35,6 +36,8 @@ class GeneralSettingService
             'selectedLocaleCodes' => collect($locales)->pluck('code')->values()->all(),
             'headerLogo' => is_string($settings->get('header_logo')?->value) ? $settings->get('header_logo')->value : null,
             'footerLogo' => is_string($settings->get('footer_logo')?->value) ? $settings->get('footer_logo')->value : null,
+            'breadcrumbImage' => is_string($settings->get('breadcrumb_image')?->value) ? $settings->get('breadcrumb_image')->value : null,
+            'breadcrumbColor' => $this->color($settings->get('breadcrumb_color')?->value),
             'footerContact' => (array) ($settings->get('footer_contact')?->value ?? []),
             'socialLinks' => (array) ($settings->get('social_links')?->value ?? []),
             'contactPhone' => (array) ($settings->get('contact_phone')?->value ?? []),
@@ -50,6 +53,8 @@ class GeneralSettingService
     {
         $this->upsert('header_logo', trim($validated['header_logo'] ?? ''), 'identity', 'Header Logo');
         $this->upsert('footer_logo', trim($validated['footer_logo'] ?? ''), 'identity', 'Footer Logo');
+        $this->upsert('breadcrumb_image', trim($validated['breadcrumb_image'] ?? ''), 'identity', 'Breadcrumb Banner');
+        $this->upsert('breadcrumb_color', $this->color($validated['breadcrumb_color'] ?? null), 'identity', 'Breadcrumb Color');
 
         $footerContact = collect((array) ($validated['footer_contact'] ?? []))
             ->map(static fn ($v): string => trim((string) $v))
@@ -78,7 +83,7 @@ class GeneralSettingService
     {
         $settings = GeneralSetting::query()
             ->whereIn('key', [
-                'header_logo', 'footer_logo', 'footer_contact',
+                'header_logo', 'footer_logo', 'breadcrumb_image', 'breadcrumb_color', 'footer_contact',
                 'social_links', 'contact_phone', 'contact_email', 'contact_address',
             ])
             ->get()
@@ -93,6 +98,8 @@ class GeneralSettingService
         return [
             'headerLogo' => $settings->get('header_logo')?->value,
             'footerLogo' => $settings->get('footer_logo')?->value,
+            'breadcrumbImage' => $this->assetUrl($settings->get('breadcrumb_image')?->value),
+            'breadcrumbColor' => $this->color($settings->get('breadcrumb_color')?->value),
             'footerContactText' => $footerContactText !== '' ? $footerContactText : null,
             'footerContactByLocale' => $footerContactByLocale !== [] ? $footerContactByLocale : null,
             'socialLinks' => (array) ($settings->get('social_links')?->value ?? []),
@@ -114,6 +121,26 @@ class GeneralSettingService
         return collect($byLocale)
             ->map(static fn ($v): string => trim((string) $v))
             ->first(static fn (string $v): bool => $v !== '') ?? '';
+    }
+
+    private function color(mixed $value): string
+    {
+        $color = strtolower(trim((string) $value));
+
+        return preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/', $color) === 1 ? $color : '#1c1714';
+    }
+
+    private function assetUrl(mixed $path): ?string
+    {
+        $value = trim((string) $path);
+        if ($value === '') {
+            return null;
+        }
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, '/')) {
+            return $value;
+        }
+
+        return Storage::disk('public')->url($value);
     }
 
     private function upsert(string $key, mixed $value, string $group, string $label): void

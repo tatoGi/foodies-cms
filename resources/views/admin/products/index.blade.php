@@ -142,6 +142,9 @@
                                     <div>
                                         <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
                                             {{ $title }}
+                                            @if($product->isSyncedFromPos())
+                                                <span class="badge bg-dark" style="font-size:0.65rem;">POS</span>
+                                            @endif
                                             @if($product->is_featured)
                                                 <span class="badge bg-warning text-dark" title="{{ __('Featured') }}"
                                                     style="font-size:0.65rem;letter-spacing:0.04em;">

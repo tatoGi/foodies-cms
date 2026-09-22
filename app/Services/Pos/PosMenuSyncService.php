@@ -91,6 +91,7 @@ class PosMenuSyncService
         $categoryExternalId = $data['category_ids'][0] ?? null;
 
         $product = Product::query()->firstOrNew(['external_source' => self::SOURCE, 'external_id' => $data['external_id']]);
+        $isNew = ! $product->exists;
         $product->sku ??= 'pos-'.$data['external_id'];
         $product->fill([
             'price' => $data['price'],
@@ -99,6 +100,9 @@ class PosMenuSyncService
             'show_on_menu_board' => (bool) ($data['show_on_menu_board'] ?? false),
             'product_category_id' => $categoryExternalId !== null ? ($categoryIds[(int) $categoryExternalId] ?? null) : null,
         ]);
+        if ($isNew) {
+            $product->published = true;
+        }
         $product->save();
 
         foreach ($data['name'] as $locale => $title) {

@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DeveloperAdminSeeder::class,
             BlockTypeDefinitionSeeder::class,
+            LanguageSeeder::class,
         ]);
     }
 }

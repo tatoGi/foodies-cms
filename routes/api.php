@@ -8,6 +8,7 @@ use App\Http\Controllers\Website\CartController;
 use App\Http\Controllers\Website\CheckoutController;
 use App\Http\Controllers\Website\ContactSubmissionController;
 use App\Http\Controllers\Website\HomeController;
+use App\Http\Controllers\Website\MenuController;
 use App\Http\Controllers\Website\NavigationController;
 use App\Http\Controllers\Website\PageController;
 use App\Http\Controllers\Website\PostController;
@@ -61,6 +62,9 @@ Route::prefix('web')->group(function () {
     Route::get('/bootstrap', BootstrapController::class)->name('api.website.bootstrap');
     Route::get('/navigation', NavigationController::class)->name('api.website.navigation');
     Route::get('/home', HomeController::class)->name('api.website.home');
+    Route::get('/menu', [MenuController::class, 'index'])->name('api.website.menu');
+    Route::get('/menu/categories/{slug}', [MenuController::class, 'category'])->name('api.website.menu.category');
+    Route::get('/status', [MenuController::class, 'status'])->name('api.website.status');
     Route::post('/contact-submissions', [ContactSubmissionController::class, 'store'])->name('api.website.contact-submissions.store');
     Route::post('/call-requests', [ContactSubmissionController::class, 'storeCallRequest'])->name('api.website.call-requests.store');
     Route::get('/cart', [CartController::class, 'index'])->name('api.website.cart.index');

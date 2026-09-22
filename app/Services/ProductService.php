@@ -198,15 +198,23 @@ class ProductService
     public function update(UpdateProductRequest $request, Product $product): Product
     {
         return DB::transaction(function () use ($request, $product): Product {
+            $fromPos = $product->isSyncedFromPos();
+            $names = (array) $request->input('names', []);
+            if ($fromPos) {
+                foreach ($product->translations()->pluck('title', 'locale') as $locale => $title) {
+                    $names[(string) $locale] = (string) $title;
+                }
+            }
+
             $this->productRepository->update($product, [
-                'sku' => trim((string) $request->input('sku', '')),
+                'sku' => $fromPos ? $product->sku : trim((string) $request->input('sku', '')),
                 'brand' => trim((string) $request->input('brand', '')) ?: null,
-                'price' => (float) $request->input('price', 0),
+                'price' => $fromPos ? $product->price : (float) $request->input('price', 0),
                 'on_sale' => $request->boolean('on_sale'),
                 'sale_price' => $request->input('sale_price') !== null && $request->input('sale_price') !== '' ? (float) $request->input('sale_price') : null,
-                'category' => $this->resolveFallbackCategory((array) $request->input('categories', [])),
+                'category' => $fromPos ? $product->category : $this->resolveFallbackCategory((array) $request->input('categories', [])),
                 'stock' => (int) $request->input('stock', 0),
-                'is_active' => $request->boolean('is_active', true),
+                'is_active' => $fromPos ? $product->is_active : $request->boolean('is_active', true),
                 'cover_image' => trim((string) $request->input('cover_image', '')) ?: null,
                 'colors' => (array) $request->input('colors', []) ?: [],
                 'block_types' => $this->normalizeBlockTypes((array) $request->input('block_types', [])),
@@ -218,7 +226,7 @@ class ProductService
 
             $this->syncTranslations(
                 $product,
-                (array) $request->input('names', []),
+                $names,
                 (array) $request->input('categories', []),
                 (array) $request->input('slugs', []),
                 (array) $request->input('descriptions', []),

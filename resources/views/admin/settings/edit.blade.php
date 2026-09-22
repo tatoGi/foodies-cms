@@ -78,6 +78,41 @@
                         @error('footer_logo')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
 
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold text-muted uppercase letter-spacing-1">
+                            {{ __('Breadcrumb banner') }}
+                        </label>
+                        <p class="small text-muted">{{ __('Background photo behind the page title. White title text sits on top of it.') }}</p>
+                        @if(old('breadcrumb_image', $breadcrumbImage))
+                            <div class="mb-2">
+                                <img src="{{ old('breadcrumb_image', $breadcrumbImage) }}" alt=""
+                                     class="rounded-2" style="max-height:90px;width:100%;object-fit:cover;">
+                            </div>
+                        @endif
+                        <input type="text" name="breadcrumb_image" id="breadcrumb_image_input"
+                               class="form-control mb-2 @error('breadcrumb_image') is-invalid @enderror"
+                               value="{{ old('breadcrumb_image', $breadcrumbImage) }}"
+                               placeholder="{{ __('Stored path') }}">
+                        <button type="button" class="btn btn-outline-secondary btn-sm open-media-picker"
+                                data-picker-mode="image"
+                                data-target-input="breadcrumb_image_input"
+                                data-target-selector="#breadcrumb_image_input">
+                            <i class="bi bi-image me-1"></i>{{ __('Choose from Media') }}
+                        </button>
+                        @error('breadcrumb_image')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold text-muted uppercase letter-spacing-1">
+                            {{ __('Breadcrumb color') }}
+                        </label>
+                        <p class="small text-muted">{{ __('Used when no photo is set, and behind the photo so the title stays readable.') }}</p>
+                        <input type="color" name="breadcrumb_color" id="breadcrumb_color_input"
+                               class="form-control form-control-color @error('breadcrumb_color') is-invalid @enderror"
+                               value="{{ old('breadcrumb_color', $breadcrumbColor) }}">
+                        @error('breadcrumb_color')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
+
                 </div>
             </div>
         </div>

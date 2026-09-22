@@ -82,7 +82,7 @@ class PosMenuSnapshotTest extends TestCase
         $this->assertSame(0, Product::count());
     }
 
-    public function test_snapshot_creates_categories_and_a_draft_product_with_translations(): void
+    public function test_snapshot_creates_categories_and_a_published_product_with_translations(): void
     {
         $this->postSnapshot($this->snapshot())->assertOk()->assertJsonPath('ok', true);
 
@@ -97,7 +97,7 @@ class PosMenuSnapshotTest extends TestCase
         $this->assertSame('12.00', $product->price);
         $this->assertTrue($product->is_available);
         $this->assertTrue($product->is_active);
-        $this->assertFalse($product->published, 'new POS items stay drafts until the site team publishes them');
+        $this->assertTrue($product->published, 'a new POS item is published so the public site mirrors the bakery menu');
         $this->assertSame($category->id, $product->product_category_id);
         $this->assertSame('Chicken Shawarma', $product->translations->firstWhere('locale', 'en')->title);
         $this->assertSame('ქათმის შაურმა', $product->translations->firstWhere('locale', 'ka')->title);
@@ -173,6 +173,18 @@ class PosMenuSnapshotTest extends TestCase
         $product = Product::sole();
         $this->assertCount(0, $product->ingredients);
         $this->assertCount(0, $product->addons);
+    }
+
+    public function test_resync_does_not_republish_an_item_the_cms_hid(): void
+    {
+        $this->postSnapshot($this->snapshot())->assertOk();
+        Product::sole()->update(['published' => false]);
+
+        $this->postSnapshot($this->snapshot(['price' => '13.00']))->assertOk();
+
+        $product = Product::sole();
+        $this->assertFalse($product->published);
+        $this->assertSame('13.00', $product->price);
     }
 
     public function test_snapshot_validates_required_item_fields(): void
