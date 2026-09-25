@@ -30,6 +30,7 @@ use App\Http\Controllers\Website\WishlistController;
 Route::prefix('pos/v1')->middleware(\App\Http\Middleware\AuthenticatePosDevice::class)->group(function () {
     Route::post('/heartbeat', PosHeartbeatController::class)->name('api.pos.heartbeat');
     Route::post('/sync/menu/snapshot', PosMenuSnapshotController::class)->name('api.pos.menu.snapshot');
+    Route::post('/sync/sales', \App\Http\Controllers\Pos\PosSalesController::class)->name('api.pos.sales');
 });
 
 Route::prefix('web')->group(function () {
