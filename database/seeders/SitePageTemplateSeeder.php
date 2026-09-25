@@ -25,6 +25,17 @@ class SitePageTemplateSeeder extends Seeder
         'about_news',
     ];
 
+    /** Every site template: names and the block types it allows, in display order. */
+    public const TEMPLATES = [
+        'about' => ['ka' => 'ჩვენ შესახებ', 'en' => 'About', 'blocks' => self::ABOUT_BLOCKS],
+        'contact' => ['ka' => 'კონტაქტი', 'en' => 'Contact', 'blocks' => ['contact_locations', 'contact_map']],
+        'faq' => ['ka' => 'ხშირი კითხვები', 'en' => 'FAQ', 'blocks' => ['faq_accordion']],
+        'gallery' => ['ka' => 'გალერეა', 'en' => 'Gallery', 'blocks' => ['gallery_grid']],
+        'history' => ['ka' => 'ისტორია', 'en' => 'History', 'blocks' => ['history_top', 'history_timeline']],
+        'reservation' => ['ka' => 'ჯავშანი', 'en' => 'Reservation', 'blocks' => ['reservation_feature', 'reservation_combo_offer', 'brand_strip']],
+        'menu' => ['ka' => 'მენიუ', 'en' => 'Menu', 'blocks' => ['menu_full', 'menu_special_banner', 'menu_best_selling', 'menu_best_food']],
+    ];
+
     public function run(): void
     {
         foreach ($this->blocks() as $index => $block) {
@@ -51,9 +62,11 @@ class SitePageTemplateSeeder extends Seeder
             );
         }
 
-        $template = PageTemplate::query()->firstOrCreate(['slug' => 'about']);
-        foreach (['ka' => 'ჩვენ შესახებ', 'en' => 'About'] as $locale => $name) {
-            $template->translations()->updateOrCreate(['locale' => $locale], ['name' => $name]);
+        foreach (self::TEMPLATES as $slug => $names) {
+            $template = PageTemplate::query()->firstOrCreate(['slug' => $slug]);
+            foreach (['ka', 'en'] as $locale) {
+                $template->translations()->updateOrCreate(['locale' => $locale], ['name' => $names[$locale]]);
+            }
         }
     }
 
@@ -154,6 +167,137 @@ class SitePageTemplateSeeder extends Seeder
                 'fields' => [
                     $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
                     $this->field('title', 'text', 'სათაური', 'Title'),
+                ],
+            ],
+            [
+                'key' => 'contact_locations', 'ka' => 'მისამართები', 'en' => 'Locations',
+                'fields' => [
+                    $this->repeater('locations', 'მისამართები', 'Locations', [
+                        $this->field('icon', 'image', 'ხატულა', 'Icon'),
+                        $this->field('title', 'text', 'სათაური', 'Title'),
+                        $this->field('find_us_label', 'text', 'მისამართის წარწერა', 'Address label'),
+                        $this->field('address', 'text', 'მისამართი', 'Address'),
+                        $this->field('mail_us_label', 'text', 'ელფოსტის წარწერა', 'Email label'),
+                        $this->field('email', 'text', 'ელფოსტა', 'Email'),
+                        $this->field('call_us_label', 'text', 'ტელეფონის წარწერა', 'Phone label'),
+                        $this->field('phone', 'text', 'ტელეფონი', 'Phone'),
+                    ]),
+                ],
+            ],
+            [
+                'key' => 'contact_map', 'ka' => 'რუკა და ფორმა', 'en' => 'Map and form',
+                'fields' => [
+                    $this->field('map_embed_url', 'text', 'Google Maps embed ბმული', 'Google Maps embed URL'),
+                    $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                    $this->field('description', 'textarea', 'აღწერა', 'Description'),
+                ],
+            ],
+            [
+                'key' => 'faq_accordion', 'ka' => 'კითხვა-პასუხი', 'en' => 'Questions and answers',
+                'fields' => [
+                    $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                    $this->repeater('items', 'კითხვები', 'Questions', [
+                        $this->field('question', 'text', 'კითხვა', 'Question'),
+                        $this->field('answer', 'textarea', 'პასუხი', 'Answer'),
+                    ]),
+                ],
+            ],
+            [
+                'key' => 'gallery_grid', 'ka' => 'გალერეის ბადე', 'en' => 'Gallery grid',
+                'fields' => [
+                    $this->field('images', 'gallery', 'სურათები (14 ადგილი)', 'Images (14 slots)'),
+                ],
+            ],
+            [
+                'key' => 'history_top', 'ka' => 'ისტორიის შესავალი', 'en' => 'History intro',
+                'fields' => [
+                    $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                    $this->field('description', 'textarea', 'აღწერა', 'Description'),
+                    $this->field('image', 'image', 'ფოტო', 'Photo'),
+                    $this->field('signature_image', 'image', 'ხელმოწერა', 'Signature'),
+                ],
+            ],
+            [
+                'key' => 'history_timeline', 'ka' => 'ისტორიის ქრონოლოგია', 'en' => 'History timeline',
+                'fields' => [
+                    $this->repeater('entries', 'წლები', 'Years', [
+                        $this->field('year', 'text', 'წელი', 'Year'),
+                        $this->field('title', 'text', 'სათაური', 'Title'),
+                        $this->field('text', 'textarea', 'ტექსტი', 'Text'),
+                        $this->field('image', 'image', 'სურათი', 'Image'),
+                    ]),
+                ],
+            ],
+            [
+                'key' => 'reservation_feature', 'ka' => 'უპირატესობები', 'en' => 'Features',
+                'fields' => [
+                    $this->repeater('items', 'უპირატესობები', 'Features', [
+                        $this->field('icon', 'image', 'ხატულა', 'Icon'),
+                        $this->field('title', 'text', 'სათაური', 'Title'),
+                        $this->field('description', 'textarea', 'აღწერა', 'Description'),
+                    ]),
+                    ...$buttons,
+                ],
+            ],
+            [
+                'key' => 'reservation_combo_offer', 'ka' => 'ჯავშნის შეთავაზება', 'en' => 'Booking offer',
+                'fields' => [
+                    $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                    $this->field('description', 'textarea', 'აღწერა', 'Description'),
+                    $this->field('support_label', 'text', 'მხარდაჭერის წარწერა', 'Support label'),
+                    $this->field('support_phone', 'text', 'მხარდაჭერის ტელეფონი', 'Support phone'),
+                    $this->field('background_image', 'image', 'ფონი', 'Background'),
+                    $this->field('form_title', 'text', 'ფორმის სათაური', 'Form title'),
+                    $this->field('form_description', 'textarea', 'ფორმის აღწერა', 'Form description'),
+                ],
+            ],
+            [
+                'key' => 'brand_strip', 'ka' => 'ბრენდების ლოგოები', 'en' => 'Brand logos',
+                'fields' => [
+                    $this->field('logos', 'gallery', 'ლოგოები', 'Logos'),
+                ],
+            ],
+            [
+                'key' => 'menu_full', 'ka' => 'სრული მენიუ (სალაროდან)', 'en' => 'Full menu (from the POS)',
+                'fields' => [
+                    $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                ],
+            ],
+            [
+                'key' => 'menu_special_banner', 'ka' => 'სპეციალური შეთავაზების ბანერი', 'en' => 'Special offer banner',
+                'fields' => [
+                    $this->field('sub_text', 'text', 'წარწერა', 'Label'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                    $this->field('text', 'textarea', 'ტექსტი', 'Text'),
+                    $this->field('image', 'image', 'კერძის სურათი', 'Dish image'),
+                    $this->field('background_image', 'image', 'ფონი', 'Background'),
+                    ...$buttons,
+                ],
+            ],
+            [
+                'key' => 'menu_best_selling', 'ka' => 'ყველაზე გაყიდვადი (გამორჩეულიდან)', 'en' => 'Best selling (from featured)',
+                'fields' => [
+                    $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                ],
+            ],
+            [
+                'key' => 'menu_best_food', 'ka' => 'საუკეთესო მენიუ (გამორჩეულიდან)', 'en' => 'Best food menu (from featured)',
+                'fields' => [
+                    $this->field('sub_title', 'text', 'ქვესათაური', 'Subtitle'),
+                    $this->field('title', 'text', 'სათაური', 'Title'),
+                    $this->field('featured_name', 'text', 'ცენტრალური კერძი', 'Centre dish'),
+                    $this->field('featured_tagline', 'text', 'ცენტრალური კერძის ტექსტი', 'Centre dish tagline'),
+                    $this->field('featured_price', 'text', 'ფასი', 'Price'),
+                    $this->field('featured_old_price', 'text', 'ძველი ფასი', 'Old price'),
+                    $this->field('background_image', 'image', 'ფონი', 'Background'),
+                    $this->field('bottom_text', 'textarea', 'ქვედა ტექსტი', 'Bottom text'),
+                    ...$buttons,
                 ],
             ],
         ];

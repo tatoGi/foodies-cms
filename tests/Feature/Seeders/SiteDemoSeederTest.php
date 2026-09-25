@@ -39,6 +39,22 @@ class SiteDemoSeederTest extends TestCase
         $this->assertSame('ჩვენ შესახებ', $template->translations()->where('locale', 'ka')->value('name'));
     }
 
+    public function test_template_seeder_creates_every_template_and_its_block_types(): void
+    {
+        $this->seed(SitePageTemplateSeeder::class);
+
+        foreach (SitePageTemplateSeeder::TEMPLATES as $slug => $template) {
+            $this->assertTrue(PageTemplate::query()->where('slug', $slug)->exists(), $slug);
+            foreach ($template['blocks'] as $key) {
+                $this->assertTrue(BlockTypeDefinition::query()->where('key', $key)->where('is_enabled', true)->exists(), $key);
+            }
+        }
+
+        $faq = BlockTypeDefinition::query()->where('key', 'faq_accordion')->sole();
+        $items = collect($faq->schema['fields'])->firstWhere('key', 'items');
+        $this->assertSame(['question', 'answer'], array_column($items['fields'], 'key'));
+    }
+
     public function test_demo_seeder_creates_the_about_page_with_blocks_and_images(): void
     {
         Storage::fake('public');
