@@ -66,7 +66,6 @@ Route::prefix('web')->group(function () {
     Route::get('/menu/categories/{slug}', [MenuController::class, 'category'])->name('api.website.menu.category');
     Route::get('/status', [MenuController::class, 'status'])->name('api.website.status');
     Route::post('/contact-submissions', [ContactSubmissionController::class, 'store'])->name('api.website.contact-submissions.store');
-    Route::post('/call-requests', [ContactSubmissionController::class, 'storeCallRequest'])->name('api.website.call-requests.store');
     Route::get('/cart', [CartController::class, 'index'])->name('api.website.cart.index');
     Route::post('/cart/items', [CartController::class, 'store'])->name('api.website.cart.store');
     Route::patch('/cart/items/{productId}', [CartController::class, 'update'])->name('api.website.cart.update');

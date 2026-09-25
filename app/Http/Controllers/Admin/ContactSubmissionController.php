@@ -16,11 +16,7 @@ class ContactSubmissionController extends Controller
     {
         $search = trim((string) $request->query('search', ''));
         $status = trim((string) $request->query('status', ''));
-        $type = trim((string) $request->query('type', ContactSubmission::TYPE_MESSAGE));
-
-        if (! in_array($type, [ContactSubmission::TYPE_MESSAGE, ContactSubmission::TYPE_CALL_REQUEST], true)) {
-            $type = ContactSubmission::TYPE_MESSAGE;
-        }
+        $type = ContactSubmission::TYPE_MESSAGE;
 
         $query = ContactSubmission::query()
             ->where('type', $type)
@@ -48,10 +44,6 @@ class ContactSubmissionController extends Controller
             ContactSubmission::TYPE_MESSAGE => [
                 'total' => ContactSubmission::query()->where('type', ContactSubmission::TYPE_MESSAGE)->count(),
                 'unread' => ContactSubmission::query()->where('type', ContactSubmission::TYPE_MESSAGE)->where('is_read', false)->count(),
-            ],
-            ContactSubmission::TYPE_CALL_REQUEST => [
-                'total' => ContactSubmission::query()->where('type', ContactSubmission::TYPE_CALL_REQUEST)->count(),
-                'unread' => ContactSubmission::query()->where('type', ContactSubmission::TYPE_CALL_REQUEST)->where('is_read', false)->count(),
             ],
         ];
 

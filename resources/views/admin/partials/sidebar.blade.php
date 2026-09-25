@@ -4,8 +4,8 @@
     @endphp
     <div class="admin-sidebar__brand">
         <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center gap-3 text-decoration-none">
-            <div class="brand-icon">N</div>
-            <span class="brand-name">NewHome CMS</span>
+            <div class="brand-icon">B</div>
+            <span class="brand-name">BiteClub CMS</span>
         </a>
     </div>
     <nav class="admin-sidebar__nav">
@@ -39,10 +39,6 @@
             <i class="bi bi-pen-fill"></i>
             <span class="admin-nav-label">{{ __('Posts') }}</span>
         </a>
-        <a class="admin-nav-link {{ request()->routeIs('admin.reels.*') ? 'is-active' : '' }}" href="{{ route('admin.reels.index') }}">
-            <i class="bi bi-camera-reels-fill"></i>
-            <span class="admin-nav-label">{{ __('Reels') }}</span>
-        </a>
 
         {{-- Store --}}
         <div class="sidebar-section-label">{{ __('Store') }}</div>
@@ -68,13 +64,6 @@
             <span class="admin-nav-label">{{ __('Contact Messages') }}</span>
             @if(($contactNotifications['messagesUnread'] ?? 0) > 0)
                 <span class="badge rounded-pill bg-danger ms-auto">{{ $contactNotifications['messagesUnread'] > 99 ? '99+' : $contactNotifications['messagesUnread'] }}</span>
-            @endif
-        </a>
-        <a class="admin-nav-link {{ (request()->routeIs('admin.contact-submissions.*') && request()->query('type') === \App\Models\ContactSubmission::TYPE_CALL_REQUEST) ? 'is-active' : '' }}" href="{{ route('admin.contact-submissions.index', ['type' => \App\Models\ContactSubmission::TYPE_CALL_REQUEST]) }}">
-            <i class="bi bi-telephone-inbound-fill"></i>
-            <span class="admin-nav-label">{{ __('Call Requests') }}</span>
-            @if(($contactNotifications['callRequestsUnread'] ?? 0) > 0)
-                <span class="badge rounded-pill bg-danger ms-auto">{{ $contactNotifications['callRequestsUnread'] > 99 ? '99+' : $contactNotifications['callRequestsUnread'] }}</span>
             @endif
         </a>
         <a class="admin-nav-link {{ request()->routeIs('admin.blocks.*') ? 'is-active' : '' }}" href="{{ route('admin.blocks.index') }}">

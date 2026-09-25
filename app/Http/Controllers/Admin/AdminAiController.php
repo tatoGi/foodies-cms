@@ -11,7 +11,6 @@ use App\Http\Requests\Admin\TranslateLocalizedContentRequest;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Product;
-use App\Models\Reel;
 use App\Services\AdminContentAiService;
 use App\Services\AiBlockContentService;
 use Illuminate\Http\JsonResponse;
@@ -174,28 +173,6 @@ class AdminAiController extends Controller
     {
         return response()->json(
             $this->contentAiService->generateProductDraftSeo(
-                (array) $request->input('translations', []),
-                (string) $request->validated('target_locale'),
-                $request->validated('source_locale')
-            )
-        );
-    }
-
-    public function translateReel(TranslateLocalizedContentRequest $request, Reel $reel): JsonResponse
-    {
-        return response()->json(
-            $this->contentAiService->translateReel(
-                $reel,
-                (string) $request->validated('target_locale'),
-                $request->validated('source_locale')
-            )
-        );
-    }
-
-    public function translateReelDraft(TranslateLocalizedContentRequest $request): JsonResponse
-    {
-        return response()->json(
-            $this->contentAiService->translateReelDraft(
                 (array) $request->input('translations', []),
                 (string) $request->validated('target_locale'),
                 $request->validated('source_locale')

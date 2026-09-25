@@ -71,7 +71,6 @@ class AppServiceProvider extends ServiceProvider
             $notifications = [
                 'unreadCount' => 0,
                 'messagesUnread' => 0,
-                'callRequestsUnread' => 0,
                 'latest' => collect(),
             ];
 
@@ -80,16 +79,12 @@ class AppServiceProvider extends ServiceProvider
                     ->where('type', ContactSubmission::TYPE_MESSAGE)
                     ->where('is_read', false)
                     ->count();
-                $callRequestsUnread = ContactSubmission::query()
-                    ->where('type', ContactSubmission::TYPE_CALL_REQUEST)
-                    ->where('is_read', false)
-                    ->count();
 
                 $notifications = [
-                    'unreadCount' => $messagesUnread + $callRequestsUnread,
+                    'unreadCount' => $messagesUnread,
                     'messagesUnread' => $messagesUnread,
-                    'callRequestsUnread' => $callRequestsUnread,
                     'latest' => ContactSubmission::query()
+                        ->where('type', ContactSubmission::TYPE_MESSAGE)
                         ->latest()
                         ->limit(5)
                         ->get(),

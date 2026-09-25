@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Product;
-use App\Models\Reel;
 use App\Repositories\Contracts\BlockTypeRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -81,100 +80,6 @@ class AdminContentAiService
     public function generateProductDraftSeo(array $translations, string $targetLocale, ?string $sourceLocale = null): array
     {
         return $this->generateSeoForDraft($translations, 'product', $targetLocale, $sourceLocale);
-    }
-
-    public function translateReel(Reel $reel, string $targetLocale, ?string $sourceLocale = null): array
-    {
-        $reel->load('translations');
-        $target = strtolower(trim($targetLocale));
-        $requestedSource = strtolower(trim((string) $sourceLocale));
-        $defaultLocale = strtolower($this->languageRepository->defaultLocale());
-
-        $sourceTranslation = null;
-        $resolvedSourceLocale = '';
-
-        if ($requestedSource !== '') {
-            $t = $reel->translations->firstWhere('locale', $requestedSource);
-            if ($t !== null && trim((string) $t->title) !== '') {
-                $sourceTranslation = $t;
-                $resolvedSourceLocale = $requestedSource;
-            }
-        }
-
-        if ($sourceTranslation === null) {
-            foreach (collect([$defaultLocale])->merge($reel->translations->pluck('locale'))->reject(static fn ($l) => (string) $l === $target)->unique() as $locale) {
-                $t = $reel->translations->firstWhere('locale', (string) $locale);
-                if ($t !== null && trim((string) $t->title) !== '') {
-                    $sourceTranslation = $t;
-                    $resolvedSourceLocale = (string) $locale;
-                    break;
-                }
-            }
-        }
-
-        if ($sourceTranslation === null) {
-            throw new RuntimeException(__('No source locale with content was found for AI generation.'));
-        }
-
-        $texts = [trim((string) $sourceTranslation->title), trim((string) $sourceTranslation->description)];
-        $translated = $this->aiContentService->translateBatch($texts, $targetLocale, $resolvedSourceLocale);
-
-        return [
-            'source_locale' => $resolvedSourceLocale,
-            'target_locale' => $targetLocale,
-            'fields' => [
-                'title' => trim($translated[0] ?? ''),
-                'description' => trim($translated[1] ?? ''),
-            ],
-        ];
-    }
-
-    public function translateReelDraft(array $translations, string $targetLocale, ?string $sourceLocale = null): array
-    {
-        $target = strtolower(trim($targetLocale));
-        $requestedSource = strtolower(trim((string) $sourceLocale));
-        $defaultLocale = strtolower($this->languageRepository->defaultLocale());
-
-        $normalized = collect($translations)
-            ->mapWithKeys(static fn (array $t, $l): array => [strtolower((string) $l) => $t]);
-
-        $sourceData = null;
-        $resolvedSourceLocale = '';
-
-        if ($requestedSource !== '' && $normalized->has($requestedSource)) {
-            $data = (array) $normalized->get($requestedSource);
-            if (trim((string) ($data['title'] ?? '')) !== '') {
-                $sourceData = $data;
-                $resolvedSourceLocale = $requestedSource;
-            }
-        }
-
-        if ($sourceData === null) {
-            foreach (collect([$defaultLocale])->merge($normalized->keys())->reject(static fn ($l) => (string) $l === $target)->unique() as $locale) {
-                $data = $normalized->get((string) $locale);
-                if (is_array($data) && trim((string) ($data['title'] ?? '')) !== '') {
-                    $sourceData = $data;
-                    $resolvedSourceLocale = (string) $locale;
-                    break;
-                }
-            }
-        }
-
-        if ($sourceData === null) {
-            throw new RuntimeException(__('No source locale with content was found for AI generation.'));
-        }
-
-        $texts = [trim((string) ($sourceData['title'] ?? '')), trim((string) ($sourceData['description'] ?? ''))];
-        $translated = $this->aiContentService->translateBatch($texts, $targetLocale, $resolvedSourceLocale);
-
-        return [
-            'source_locale' => $resolvedSourceLocale,
-            'target_locale' => $targetLocale,
-            'fields' => [
-                'title' => trim($translated[0] ?? ''),
-                'description' => trim($translated[1] ?? ''),
-            ],
-        ];
     }
 
     private function translateModel(Model $model, string $scope, string $bodyField, string $targetLocale, ?string $sourceLocale = null, array $extraFieldNames = []): array

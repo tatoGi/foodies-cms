@@ -183,11 +183,6 @@
                             <div class="action-label">{{ __('Create Product') }}</div>
                             <i class="bi bi-chevron-right ms-auto"></i>
                         </a>
-                        <a href="{{ route('admin.reels.create') }}" class="action-button">
-                            <div class="action-icon bg-info-soft text-info"><i class="bi bi-camera-reels"></i></div>
-                            <div class="action-label">{{ __('Create New Reel') }}</div>
-                            <i class="bi bi-chevron-right ms-auto"></i>
-                        </a>
                         <a href="{{ route('admin.page-templates.create') }}" class="action-button">
                             <div class="action-icon bg-info-soft text-info"><i class="bi bi-layout-text-window-reverse"></i></div>
                             <div class="action-label">{{ __('Create Page Template') }}</div>

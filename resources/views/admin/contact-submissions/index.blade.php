@@ -4,7 +4,6 @@
     use App\Models\ContactSubmission;
     $typeLabels = [
         ContactSubmission::TYPE_MESSAGE => __('Contact Messages'),
-        ContactSubmission::TYPE_CALL_REQUEST => __('Call Requests'),
     ];
 @endphp
 
@@ -127,11 +126,7 @@
                                         @endif
                                     </td>
                                     <td class="py-3">
-                                        @if($submission->type === \App\Models\ContactSubmission::TYPE_CALL_REQUEST)
-                                            <div class="small text-muted fst-italic">{{ __('Call request') }}</div>
-                                        @else
-                                            <div class="small text-muted">{{ \Illuminate\Support\Str::limit($submission->message ?? '', 110) }}</div>
-                                        @endif
+                                        <div class="small text-muted">{{ \Illuminate\Support\Str::limit($submission->message ?? '', 110) }}</div>
                                     </td>
                                     <td class="py-3">
                                         <div class="small fw-medium">{{ $submission->page_slug ?: __('Contact page') }}</div>

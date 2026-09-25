@@ -8,7 +8,7 @@
                     <h1 class="h4 mb-3">Checkout</h1>
 
                     <div class="alert alert-info">
-                        {{ __('Customer login and registration are handled by the NewHome frontend application. This CMS checkout form stays guest-only.') }}
+                        {{ __('Customer login and registration are handled by the BiteClub website. This CMS checkout form stays guest-only.') }}
                     </div>
 
                     @if($errors->any())
@@ -94,7 +94,7 @@
                 <div class="card-body">
                     <h2 class="h6">Saved Cards</h2>
 
-                    <p class="text-muted mb-0">Saved cards are available only through the NewHome frontend user account flow.</p>
+                    <p class="text-muted mb-0">Saved cards are available only through the BiteClub website user account flow.</p>
                 </div>
             </div>
         </div>

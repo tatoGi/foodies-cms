@@ -17,7 +17,6 @@ use App\Http\Controllers\Admin\PageTemplateController;
 use App\Http\Controllers\Admin\PosDeviceController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\ReelController;
 use App\Http\Controllers\Admin\RegisteredUserController;
 use App\Http\Controllers\Admin\SalesStatisticsController;
 use Illuminate\Support\Facades\Route;
@@ -95,10 +94,6 @@ Route::post('products/{product}/ai/translate', [AdminAiController::class, 'trans
 Route::post('products/{product}/ai/seo', [AdminAiController::class, 'generateProductSeo'])->name('products.ai.seo');
 Route::resource('products', ProductController::class)->except('show');
 Route::get('pos-devices', [PosDeviceController::class, 'index'])->name('pos-devices.index');
-Route::post('reels/reorder', [ReelController::class, 'reorder'])->name('reels.reorder');
-Route::post('reels/ai/translate', [AdminAiController::class, 'translateReelDraft'])->name('reels.ai.translate-draft');
-Route::post('reels/{reel}/ai/translate', [AdminAiController::class, 'translateReel'])->name('reels.ai.translate');
-Route::resource('reels', ReelController::class)->except('show');
 Route::resource('menus', MenuController::class)->except('show');
 Route::get('contact-submissions', [ContactSubmissionController::class, 'index'])->name('contact-submissions.index');
 Route::get('contact-submissions/{contactSubmission}', [ContactSubmissionController::class, 'show'])->name('contact-submissions.show');

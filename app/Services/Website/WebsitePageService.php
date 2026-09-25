@@ -8,7 +8,6 @@ use App\Models\Media;
 use App\Models\Page;
 use App\Models\PageSlugAlias;
 use App\Models\Product;
-use App\Models\Reel;
 use App\Repositories\Contracts\BlockTypeRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\WebsiteMenuRepositoryInterface;
@@ -181,36 +180,10 @@ class WebsitePageService
             $linkedProducts = array_merge($linkedProducts, $featuredProducts);
         }
 
-        $reels = [];
         $projectSection = null;
         $blogSection = null;
 
         if ($isHomepage) {
-            $reels = Reel::query()
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn ($r) => $this->formatReel($r, $locale, $defaultLocale))
-                ->filter()
-                ->values()
-                ->all();
-
-            // Products flagged "Show in Reels" appear alongside regular reels.
-            $productReels = Product::query()
-                ->where('show_in_reels', true)
-                ->where('published', true)
-                ->where('is_active', true)
-                ->with('translations.blocks')
-                ->orderBy('sort_order')
-                ->orderByDesc('id')
-                ->get()
-                ->map(fn ($p) => $this->formatProductReel($p, $locale, $defaultLocale))
-                ->filter()
-                ->values()
-                ->all();
-
-            $reels = array_merge($reels, $productReels);
-
             $projectSection = $this->resolveProjectSection($locale, $defaultLocale);
             $blogSection = $this->resolveBlogSection($locale, $defaultLocale);
         }
@@ -246,7 +219,6 @@ class WebsitePageService
             'relations' => [
                 'posts' => $relatedPosts,
                 'products' => $linkedProducts,
-                'reels' => $reels,
                 'categories' => $childCategories,
             ],
             'project_section' => $projectSection,
@@ -457,76 +429,6 @@ class WebsitePageService
             'page_slug' => $pageSlug,
             'posts' => $posts,
         ];
-    }
-
-    private function formatReel($reel, string $locale, string $defaultLocale): ?array
-    {
-        $t = $this->resolveTranslation($reel, $locale, $defaultLocale);
-
-        app()->setLocale($locale);
-
-        $videoUrl = trim((string) ($reel->video_url ?? ''));
-
-        return [
-            'id' => $reel->id,
-            'title' => $t?->title ?? '',
-            'description' => $t?->description ?? '',
-            'image' => $this->toAssetUrl($reel->thumbnail_url),
-            'video_url' => $videoUrl,
-            'category' => $reel->category,
-            'category_label' => __("reel_category_{$reel->category}"),
-        ];
-    }
-
-    /**
-     * Map a product flagged "Show in Reels" into the reel payload shape.
-     * Ids are offset so they never collide with real reel ids in the UI.
-     */
-    private function formatProductReel($product, string $locale, string $defaultLocale): ?array
-    {
-        $t = $this->resolveTranslation($product, $locale, $defaultLocale);
-
-        if ($t === null || trim((string) $t->slug) === '') {
-            return null;
-        }
-
-        $image = $this->toAssetUrl($product->cover_image)
-            ?? $this->firstGalleryImageUrl($this->productBlocks($t));
-
-        if ($image === null) {
-            return null;
-        }
-
-        $slug = (string) $t->slug;
-
-        return [
-            'id' => 1_000_000_000 + (int) $product->id,
-            'product_id' => (int) $product->id,
-            'title' => (string) $t->title,
-            'description' => (string) ($t->excerpt ?? $t->description ?? ''),
-            'image' => $image,
-            'video_url' => '',
-            'category' => 'product',
-            'category_label' => __('reel_category_product'),
-            'slug' => $slug,
-            'url' => '/product/'.$slug,
-        ];
-    }
-
-    /**
-     * Frontend-mapped blocks for a product translation (for gallery fallback).
-     *
-     * @return array<int, array{type:string, data:array<string,mixed>}>
-     */
-    private function productBlocks($translation): array
-    {
-        return collect($translation->blocks ?? [])
-            ->map(static fn ($block): array => [
-                'type' => FrontendBlockTypeMapper::toFrontend((string) ($block->type ?? '')),
-                'data' => (array) ($block->data ?? []),
-            ])
-            ->values()
-            ->all();
     }
 
     private function resolveRelatedPosts($page, string $locale, string $defaultLocale, ?string $category = null): array
