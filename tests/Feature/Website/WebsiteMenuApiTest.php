@@ -93,6 +93,55 @@ class WebsiteMenuApiTest extends TestCase
             ->assertJsonPath('products.0.slug', 'shawarma-large');
     }
 
+    public function test_featured_menu_keeps_only_featured_dishes_and_their_categories(): void
+    {
+        $this->createLanguage('ka');
+        $shawarma = $this->menuCategory('შაურმა', 'shawarma', 1);
+        $drinks = $this->menuCategory('სასმელები', 'drinks', 2);
+        $this->menuProduct($shawarma, 'ქათმის შაურმა', 'chicken', true);
+        $this->menuProduct($shawarma, 'მინი შაურმა', 'mini', false);
+        $this->menuProduct($drinks, 'წყალი', 'water', false);
+
+        $response = $this->getJson('/api/web/menu?locale=ka&featured=1')->assertOk();
+
+        $this->assertSame(['shawarma'], array_column($response->json('categories'), 'slug'));
+        $this->assertSame(['chicken'], array_column($response->json('categories.0.products'), 'slug'));
+        $this->assertCount(2, $this->getJson('/api/web/menu?locale=ka')->json('categories'));
+    }
+
+    private function menuCategory(string $name, string $slug, int $sort): ProductCategory
+    {
+        $category = ProductCategory::query()->create(['sort_order' => $sort, 'is_active' => true]);
+        ProductCategoryTranslation::query()->create([
+            'product_category_id' => $category->id,
+            'locale' => 'ka',
+            'name' => $name,
+            'slug' => $slug,
+        ]);
+
+        return $category;
+    }
+
+    private function menuProduct(ProductCategory $category, string $title, string $slug, bool $featured): void
+    {
+        $product = Product::query()->create([
+            'product_category_id' => $category->id,
+            'sku' => $slug,
+            'price' => 10,
+            'is_active' => true,
+            'is_featured' => $featured,
+            'published' => true,
+            'sort_order' => 1,
+            'block_types' => [],
+        ]);
+        ProductTranslation::query()->create([
+            'product_id' => $product->id,
+            'locale' => 'ka',
+            'title' => $title,
+            'slug' => $slug,
+        ]);
+    }
+
     public function test_status_follows_the_pos_heartbeat(): void
     {
         $this->getJson('/api/web/status')

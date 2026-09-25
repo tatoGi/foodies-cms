@@ -15,7 +15,7 @@ class MenuController extends Controller
 
     public function index(WebsiteMenuRequest $request): JsonResponse
     {
-        return response()->json($this->menu->menu($request->localeCode()));
+        return response()->json($this->menu->menu($request->localeCode(), $request->featuredOnly()));
     }
 
     public function category(WebsiteMenuRequest $request, string $slug): JsonResponse

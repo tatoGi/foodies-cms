@@ -20,7 +20,13 @@ class WebsiteMenuRequest extends FormRequest
     {
         return [
             'locale' => ['nullable', 'string', 'max:8'],
+            'featured' => ['nullable', 'boolean'],
         ];
+    }
+
+    public function featuredOnly(): bool
+    {
+        return $this->boolean('featured');
     }
 
     public function localeCode(): string

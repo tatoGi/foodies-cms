@@ -17,13 +17,15 @@ class WebsiteMenuService
     /**
      * @return array{locale: string, categories: array<int, array<string, mixed>>}
      */
-    public function menu(string $requestedLocale): array
+    public function menu(string $requestedLocale, bool $featuredOnly = false): array
     {
         [$locale, $fallback] = $this->locales($requestedLocale);
 
         $products = Product::query()
             ->where('published', true)
             ->where('is_active', true)
+            // The home page "best dishes" section shows only dishes marked featured in the CMS.
+            ->when($featuredOnly, fn ($query) => $query->where('is_featured', true))
             ->with(['translations', 'addons', 'ingredients', 'productCategory.translations'])
             ->orderBy('sort_order')
             ->orderBy('id')
