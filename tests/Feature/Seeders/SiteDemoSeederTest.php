@@ -8,6 +8,8 @@ use App\Models\BlockTypeDefinition;
 use App\Models\Page;
 use App\Models\PageTemplate;
 use App\Models\PageTranslation;
+use App\Models\Post;
+use App\Models\PostTranslation;
 use Database\Seeders\SiteDemoSeeder;
 use Database\Seeders\SitePageTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -111,6 +113,30 @@ class SiteDemoSeederTest extends TestCase
             ->blocks()->sole()->data;
         $this->assertCount(14, $gallery['images']);
         Storage::disk('public')->assertExists($gallery['images'][0]);
+    }
+
+    public function test_demo_seeder_creates_the_blog_posts_once(): void
+    {
+        Storage::fake('public');
+        $this->createLanguage('ka');
+        $this->createLanguage('en', false);
+
+        $this->seed(SiteDemoSeeder::class);
+        $this->seed(SiteDemoSeeder::class);
+
+        $this->assertSame(3, Post::query()->count());
+        foreach (['khinkali-history', 'spring-menu', 'visit-this-weekend'] as $slug) {
+            $ka = PostTranslation::query()->where('slug', $slug)->sole();
+            $this->assertSame('ka', $ka->locale);
+            $en = $ka->post->translations()->where('locale', 'en')->sole();
+            $this->assertSame("{$slug}-en", $en->slug);
+            $this->assertTrue($ka->post->published);
+            Storage::disk('public')->assertExists($ka->post->feature_image);
+
+            $article = $en->blocks()->where('type', 'blog_article')->sole()->data;
+            $this->assertNotEmpty($article['paragraphs'][0]['text']);
+            $this->assertNotEmpty($article['tags']);
+        }
     }
 
     public function test_page_api_returns_about_blocks_in_order_for_both_locales(): void

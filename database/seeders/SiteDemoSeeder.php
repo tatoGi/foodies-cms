@@ -14,6 +14,7 @@ class SiteDemoSeeder extends Seeder
         $this->call([
             SitePageTemplateSeeder::class,
             SitePagesDemoSeeder::class,
+            BlogDemoSeeder::class,
         ]);
     }
 }

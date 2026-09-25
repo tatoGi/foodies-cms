@@ -1,0 +1,248 @@
+[
+  {
+    "slug": {
+      "ka": "khinkali-history",
+      "en": "khinkali-history-en"
+    },
+    "published_at": "2026-03-03",
+    "feature_image": "demo/blog/blog-post-1.jpg",
+    "translations": {
+      "ka": {
+        "title": "ხინკლის ისტორია საქართველოში",
+        "excerpt": "ხინკალი, საქართველოს სავიზიტო ბარათი, სათავეს იღებს მთიან რეგიონებში — ხევსურეთსა და ფშავში, სადაც მწყემსებს სჭირდებოდათ საკვები, ლაშქრობაში წასაღები. BiteClub-ში დღემდე ყოველ ხინკალს ხელით ვკეცავთ, თაობებით გადმოცემული რეცეპტით.",
+        "category": "სამზარეულო",
+        "article": {
+          "category": "სამზარეულო",
+          "detail_image": "demo/blog/blog-details-01.jpg",
+          "paragraphs": [
+            {
+              "text": "ხინკალი პირველად აღმოსავლეთ საქართველოს მთიან რეგიონებში — ხევსურეთში, ფშავსა და თუშეთში გაჩნდა, სავარაუდოდ, VII-VIII საუკუნეებში. მწყემსებსა და მეომრებს სჭირდებოდათ საკვები, რომელიც ადვილად გადასატანი და გამძღარი იქნებოდა მთაში გატარებული გრძელი დღეების განმავლობაში — ასე გაჩნდა ცომში გახვეული ხორცისა და წვენის შემცველი ხინკალი, თავზე დამახასიათებელი კვანძით."
+            },
+            {
+              "text": "საუკუნეების განმავლობაში რეცეპტი მთიდან ბარსა და ქალაქებში ჩამოვიდა და გზად სხვადასხვა რეგიონული ვარიაცია შეიძინა. ზოგან პიკანტურ საქონლისა და ღორის ხორცის ნაზავს ამჯობინებენ, ზოგან — სუფთა ცხვრის ხორცს, ხოლო ზაფხულში პოპულარული გახდა ხორცის გარეშე ვარიანტები — ყველისა და სოკოს ხინკალი."
+            },
+            {
+              "text": "BiteClub-ში მთის ამ ტრადიციას პატივს ვცემთ. ჩვენი მენიუს ყოველი ხინკალი ხელით იკეცება შეკვეთისთანავე, ივსება კარგად შეზავებული ხორცის ნაზავითა და წვენით, რომელიც პირველივე ნაკბენზე იფეთქებს. მათ ტრადიციულადაც ვამზადებთ — დანა-ჩანგალი არ გჭირდებათ, მხოლოდ ხელები, უხვად შავი პილპილი და საკმარისი რაოდენობის ხელსახოცები."
+            }
+          ],
+          "pull_quote": "ნამდვილი ხინკალი დანით არასდროს იჭრება — აიღეთ კუდით, დაუკბენით და დანარჩენს წვენი გეტყვით.",
+          "secondary_image": "demo/blog/blog-details-02.jpg",
+          "closing_paragraph": "მიუხედავად იმისა, პირველად სცდით ხინკალს თუ ბებიის სუფრასთან გაიზარდეთ მასზე, გვინდა, ჩვენმა ვერსიამ ცოტათი მაინც მოგიტანოთ საქართველოს მთების გემო.",
+          "tags": [
+            {
+              "text": "ხინკალი"
+            },
+            {
+              "text": "ქართული სამზარეულო"
+            },
+            {
+              "text": "რეცეპტი"
+            }
+          ]
+        }
+      },
+      "en": {
+        "title": "The History of Khinkali in Georgia",
+        "excerpt": "Khinkali, Georgia's iconic soup dumpling, traces its roots to the mountain regions of Khevsureti and Pshavi, where shepherds needed a hearty, portable meal. At BiteClub, we still hand-fold every khinkali the traditional way, using a recipe passed down through generations.",
+        "category": "Kitchen",
+        "article": {
+          "category": "Kitchen",
+          "detail_image": "demo/blog/blog-details-01.jpg",
+          "paragraphs": [
+            {
+              "text": "Khinkali first appeared in the highlands of eastern Georgia — Khevsureti, Pshavi and Tusheti — sometime in the 7th or 8th century. Shepherds and warriors needed a filling, easy-to-carry meal that could survive long days in the mountains, and the soup-filled dumpling was the answer: simple ingredients, sealed inside a thick dough wrapper twisted into a topknot."
+            },
+            {
+              "text": "Over the centuries the recipe spread down from the mountains into the valleys and cities, picking up regional variations along the way. Some regions favor a peppery beef and pork filling, others prefer pure lamb, and in summer, cheese or mushroom khinkali became popular meat-free alternatives."
+            },
+            {
+              "text": "At BiteClub, we honor that mountain tradition. Every khinkali on our menu is hand-folded to order, filled with a well-seasoned meat mixture and a spoonful of rich broth that bursts with the first bite. We serve them the traditional way too — no fork required, just your hands, a generous dusting of black pepper, and plenty of napkins."
+            }
+          ],
+          "pull_quote": "A proper khinkali should never be cut with a knife — pick it up by the topknot, take a bite, and let the broth do the talking.",
+          "secondary_image": "demo/blog/blog-details-02.jpg",
+          "closing_paragraph": "Whether you're trying khinkali for the first time or you grew up eating them at your grandmother's table, we hope our version brings a little bit of the Georgian mountains to your plate.",
+          "tags": [
+            {
+              "text": "Khinkali"
+            },
+            {
+              "text": "Georgian Cuisine"
+            },
+            {
+              "text": "Recipe"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "slug": {
+      "ka": "spring-menu",
+      "en": "spring-menu-en"
+    },
+    "published_at": "2026-04-14",
+    "feature_image": "demo/blog/blog-post-2.jpg",
+    "translations": {
+      "ka": {
+        "title": "ჩვენი ახალი გაზაფხულის მენიუ",
+        "excerpt": "გაზაფხული მოვიდა და მასთან ერთად — BiteClub-ის განახლებული მენიუც, აგებული სეზონის პირველ მწვანილებზე, ბალახეულსა და ბოსტნეულზე. ახალი ჩაქაფულიდან უფრო მსუბუქ ლობიომდე — აი, რა სიახლეებია სუფრაზე.",
+        "category": "სიახლეები",
+        "article": {
+          "category": "სიახლეები",
+          "detail_image": "demo/blog/blog-details-01.jpg",
+          "paragraphs": [
+            {
+              "text": "ყოველ გაზაფხულზე ჩვენი სამზარეულოს გუნდი ახალ მენიუს იმაზე დაყრდნობით გეგმავს, რაც სინამდვილეში იზრდება — ახალი ტარხუნა, ახალგაზრდა ნიორი, მწვანე ხახვი და თბილისის მიმდებარე ფერმებიდან მოტანილი პირველი ნაზი მწვანილი. წელსაც იგივეს გავაკეთეთ და რამდენიმე ახალი კერძი მთლიანად ამ ინგრედიენტებზე ავაწყვეთ."
+            },
+            {
+              "text": "ახალი მენიუს ვარსკვლავი ჩვენი ჩაქაფულია — ცხვრის ხორცით, უხვი ტარხუნით, მწვანე ქლიავითა და თეთრი ღვინით — კერძი, რომელიც ტრადიციულად ქართულ ოჯახებში გაზაფხულის დადგომას აღნიშნავს. ლობიოც გავამსუბუქეთ — დავამატეთ ახალი მწვანილი და ცოტა ნიგოზი, სიმძიმის გარეშე, მაგრამ გემოთი უფრო მდიდარი."
+            },
+            {
+              "text": "უფრო გრილი კერძის მოყვარულთათვის შემოგთავაზეთ ახალი სეზონური სალათი — ახალგაზრდა მწვანილით, ბოლოკითა და ტყემლის მარტივი საწებელით — რომელიც შესანიშნავად უხდება ცხელ მჭადს. როგორც ყოველთვის, ყველაფერს ყოველდღიურად ვამზადებთ ახლად, ამიტომ მენიუ სეზონის განმავლობაში კიდევ შეიცვლება."
+            }
+          ],
+          "pull_quote": "ქართულ გაზაფხულს თავისი გემო აქვს — ტარხუნა, ახალი ნიორი და წლის პირველი მჟავე ქლიავი. გვინდოდა, ჩვენი ახალი მენიუ ზუსტად ასეთი გემოსი ყოფილიყო.",
+          "secondary_image": "demo/blog/blog-details-02.jpg",
+          "closing_paragraph": "სცადეთ ახალი კერძები, სანამ სეზონი გრძელდება — ზაფხულის მოსავლის მოსვლასთან ერთად რამდენიმე პოზიციას შევცვლით.",
+          "tags": [
+            {
+              "text": "მენიუ"
+            },
+            {
+              "text": "გაზაფხული"
+            },
+            {
+              "text": "ჩაქაფული"
+            },
+            {
+              "text": "სეზონური"
+            }
+          ]
+        }
+      },
+      "en": {
+        "title": "Our New Spring Menu",
+        "excerpt": "Spring has arrived and so has a refreshed BiteClub menu, built around the season's first greens, herbs and vegetables. From a bright new chakapuli to a lighter lobio, here's what's new on the table.",
+        "category": "News",
+        "article": {
+          "category": "News",
+          "detail_image": "demo/blog/blog-details-01.jpg",
+          "paragraphs": [
+            {
+              "text": "Every spring, our kitchen team starts planning the new menu around what's actually growing — fresh tarragon, young garlic, spring onions, and the first tender greens from local farms around Tbilisi. This year is no different, and we've built a handful of new dishes entirely around those ingredients."
+            },
+            {
+              "text": "The star of the new menu is our Chakapuli, made with lamb, plenty of fresh tarragon, green plums and white wine — a dish that traditionally marks the start of spring in Georgian homes. We've also lightened up our Lobio, adding fresh herbs and a touch of walnut for extra depth without the heaviness of a winter stew."
+            },
+            {
+              "text": "For something cooler, try our new seasonal salad with young greens, radish and a simple sour-plum dressing — it pairs perfectly with warm mchadi straight from the pan. As always, everything is made fresh daily, so the menu will keep evolving as the season goes on."
+            }
+          ],
+          "pull_quote": "Spring in Georgia has a flavor of its own — tarragon, green garlic and the first sour plums of the year. We wanted our new menu to taste like exactly that.",
+          "secondary_image": "demo/blog/blog-details-02.jpg",
+          "closing_paragraph": "Come try the new dishes while the season lasts — we'll be rotating a few items out as summer produce starts to arrive.",
+          "tags": [
+            {
+              "text": "Menu"
+            },
+            {
+              "text": "Spring"
+            },
+            {
+              "text": "Chakapuli"
+            },
+            {
+              "text": "Seasonal"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "slug": {
+      "ka": "visit-this-weekend",
+      "en": "visit-this-weekend-en"
+    },
+    "published_at": "2026-05-09",
+    "feature_image": "demo/blog/blog-post-3.jpg",
+    "translations": {
+      "ka": {
+        "title": "5 მიზეზი, რატომ უნდა ეწვიოთ BiteClub-ს ამ შაბათ-კვირას",
+        "excerpt": "გეძებთ ადგილს, სადაც შაბათ-კვირას მოისვენებთ? შაბათ-კვირის სპეციალური შეთავაზებებიდან ცოცხალი მუსიკის საღამომდე — აი, 5 მიზეზი, რატომ ღირს BiteClub-ში მაგიდის დაჯავშნა.",
+        "category": "ღონისძიებები",
+        "article": {
+          "category": "ღონისძიებები",
+          "detail_image": "demo/blog/blog-details-01.jpg",
+          "paragraphs": [
+            {
+              "text": "1. შაბათ-კვირის სპეციალური შეთავაზებები. ყოველ შაბათ-კვირას მენიუში რამდენიმე შეზღუდული რაოდენობის კერძი ჩნდება, რომელსაც კვირის განმავლობაში ვერ ნახავთ — ნელა მოხარშული ხორცეულობა და სეზონური სიახლეები, რომლებსაც ჩვენი შეფები მთელი კვირის განმავლობაში ცდიან. 2. მშვიდი ატმოსფერო. ჩვენი დარბაზი და ტერასა შექმნილია დროის გასატარებლად — შესანიშნავია მეგობრებთან ხანგრძლივი სადილისთვის ან ნელი ვახშმისთვის, რომელიც დესერტითა და ყავით სრულდება."
+            },
+            {
+              "text": "3. ახალი, ადგილობრივი ინგრედიენტები. ვთანამშრომლობთ თბილისის მიმდებარე ფერმებთან ბოსტნეულის, მწვანილისა და რძის პროდუქტების მისაღებად — ამიტომ თქვენს თეფშზე მოხვედრილი კერძი სეზონთან ერთად ოდნავ იცვლება და ყოველთვის დილით მომზადებულის გემო აქვს. 4. ყველასთვის რაღაც. კლასიკური ხინკალი გნებავთ, მსუბუქი სალათი თუ ნამდვილი ქართული ნადიმი — ჩვენი მენიუ საკმარისად ფართოა, რომ არავის მოუწიოს არჩევანზე დათმობა."
+            },
+            {
+              "text": "5. სრულყოფილი დასვენება ორშაბათის წინ. კარგი კერძი, კომფორტული ადგილი და დროზე ფიქრის გარეშე — ხანდახან შაბათ-კვირა სწორედ ამისთვისაა. მოიყვანეთ ოჯახი, მეგობრები ან უბრალოდ მარტო ჩამოდით წიგნით — დანარჩენზე ჩვენ ვიზრუნებთ."
+            }
+          ],
+          "pull_quote": "საუკეთესო შაბათ-კვირა იწყება მაგიდით, გემრიელი საკვებით და დროზე ფიქრის გარეშე.",
+          "secondary_image": "demo/blog/blog-details-02.jpg",
+          "closing_paragraph": "სიამოვნებით გნახავთ ამ შაბათ-კვირას — განსაკუთრებული მიზეზი არ გჭირდებათ, უბრალოდ მშიერი მოდით.",
+          "tags": [
+            {
+              "text": "შაბათ-კვირა"
+            },
+            {
+              "text": "ატმოსფერო"
+            },
+            {
+              "text": "ღონისძიებები"
+            },
+            {
+              "text": "რესტორანი"
+            }
+          ]
+        }
+      },
+      "en": {
+        "title": "5 Reasons to Visit BiteClub This Weekend",
+        "excerpt": "Looking for a place to relax this weekend? From our weekend specials to live music nights, here are five reasons to grab a table at BiteClub before Sunday.",
+        "category": "Events",
+        "article": {
+          "category": "Events",
+          "detail_image": "demo/blog/blog-details-01.jpg",
+          "paragraphs": [
+            {
+              "text": "1. Weekend specials. Every Saturday and Sunday we put a couple of limited dishes on the menu that you won't find during the week — think slow-cooked stews and seasonal specials our chefs have been testing all week. 2. A relaxed atmosphere. Our dining room and terrace are built for lingering — good for a long lunch with friends or a slow dinner that turns into dessert and coffee."
+            },
+            {
+              "text": "3. Fresh, local ingredients. We work with farms around Tbilisi to source vegetables, herbs and dairy, so what's on your plate changes a little with the seasons — and it always tastes like it was made that morning. 4. Something for everyone at the table. Whether someone wants classic khinkali, a lighter salad, or a proper Georgian feast, our menu covers enough ground that nobody has to compromise."
+            },
+            {
+              "text": "5. It's the perfect reset before Monday. A good meal, a comfortable seat, and no rush to leave — sometimes that's exactly what a weekend is for. Bring your family, your friends, or just come alone with a book; we'll take care of the rest."
+            }
+          ],
+          "pull_quote": "The best weekends start with a table, good food, and no reason to check the time.",
+          "secondary_image": "demo/blog/blog-details-02.jpg",
+          "closing_paragraph": "We'd love to see you this weekend — no need for a special occasion, just come hungry.",
+          "tags": [
+            {
+              "text": "Weekend"
+            },
+            {
+              "text": "Atmosphere"
+            },
+            {
+              "text": "Events"
+            },
+            {
+              "text": "Restaurant"
+            }
+          ]
+        }
+      }
+    }
+  }
+]
