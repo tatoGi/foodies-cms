@@ -47,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(BlockTypeRepositoryInterface::class, BlockTypeRepository::class);
         $this->app->bind(LanguageRepositoryInterface::class, LanguageRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
+        $this->app->bind(\App\Repositories\Contracts\PosSalesRepositoryInterface::class, \App\Repositories\Eloquent\PosSalesRepository::class);
 
         // Website-side repositories
         $this->app->bind(WebsitePageRepositoryInterface::class, EloquentWebsitePageRepository::class);

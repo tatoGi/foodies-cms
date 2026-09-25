@@ -670,5 +670,15 @@
     "used of total storage": "გამოყენებულია სულდან საცავი",
     "used storage": "გამოყენებული საცავი",
     "vs previous period": "წინა პერიოდთან შედარებით",
-    "your storage": "თქვენი საცავი"
+    "your storage": "თქვენი საცავი",
+    "Today": "დღეს",
+    "This Week": "ეს კვირა",
+    "Sales channels": "გაყიდვის არხები",
+    "In store": "ადგილზე (სალარო)",
+    "Online": "ონლაინ",
+    "orders": "შეკვეთა",
+    "Payment methods": "გადახდის მეთოდები",
+    "Cash": "ნაღდი",
+    "Card": "ბარათი",
+    "Online payment": "ონლაინ გადახდა"
 }

@@ -43,17 +43,16 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function monthlySales(int $months = 12): Collection
     {
+        // Grouped in PHP so it runs on any database (DATE_FORMAT is MySQL-only).
         return Order::query()
-            ->select(
-                DB::raw("DATE_FORMAT(ordered_at, '%Y-%m') as month"),
-                DB::raw("SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END) as revenue"),
-                DB::raw('COUNT(*) as orders')
-            )
+            ->select(['ordered_at', 'status', 'total'])
             ->where('ordered_at', '>=', now()->subMonths($months - 1)->startOfMonth())
-            ->groupBy('month')
-            ->orderBy('month')
             ->get()
-            ->keyBy('month');
+            ->groupBy(fn (Order $order): string => $order->ordered_at->format('Y-m'))
+            ->map(fn (Collection $orders): object => (object) [
+                'revenue' => (float) $orders->where('status', 'completed')->sum('total'),
+                'orders' => $orders->count(),
+            ]);
     }
 
     public function topProducts(?CarbonInterface $dateFrom = null, int $limit = 10): Collection

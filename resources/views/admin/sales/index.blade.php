@@ -11,7 +11,7 @@
             <p class="text-muted mb-0 small">{{ __('Overview of product sales and revenue performance') }}</p>
         </div>
         <div class="d-flex align-items-center gap-2">
-            @foreach(['month' => __('This Month'), 'quarter' => __('This Quarter'), 'year' => __('This Year'), 'all' => __('All Time')] as $key => $label)
+            @foreach(['today' => __('Today'), 'week' => __('This Week'), 'month' => __('This Month'), 'quarter' => __('This Quarter'), 'year' => __('This Year'), 'all' => __('All Time')] as $key => $label)
                 <a href="{{ route('admin.sales.index', ['range' => $key]) }}"
                    class="btn btn-sm {{ $range === $key ? 'btn-primary' : 'btn-light' }} rounded-3">
                     {{ $label }}
@@ -109,6 +109,58 @@
                 </div>
                 <div class="stat-card-progress">
                     <div class="progress-bar w-100 bg-warning"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Channels and payments: in-store sales come from the POS, online orders from the website --}}
+    @php
+        $channelTotal = max($totalRevenue, 0.01);
+        $paymentLabels = ['cash' => __('Cash'), 'card' => __('Card'), 'other' => __('Other'), 'online' => __('Online payment')];
+    @endphp
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-panel premium-shadow h-100">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <i class="bi bi-shop me-2 text-success"></i>
+                        <span>{{ __('Sales channels') }}</span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    @foreach([
+                        ['label' => __('In store'), 'revenue' => $inStoreRevenue, 'orders' => $inStoreOrders, 'color' => 'bg-success'],
+                        ['label' => __('Online'), 'revenue' => $onlineRevenue, 'orders' => $onlineOrders, 'color' => 'bg-primary'],
+                    ] as $channel)
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="fw-semibold">{{ $channel['label'] }} <span class="text-muted">· {{ number_format($channel['orders']) }} {{ __('orders') }}</span></span>
+                                <span>{{ number_format($channel['revenue'], 2) }} ₾ · {{ round($channel['revenue'] / $channelTotal * 100) }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar {{ $channel['color'] }}" style="width: {{ round($channel['revenue'] / $channelTotal * 100) }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-panel premium-shadow h-100">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <i class="bi bi-wallet2 me-2 text-warning"></i>
+                        <span>{{ __('Payment methods') }}</span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    @foreach($paymentSplit as $method => $amount)
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                            <span>{{ $paymentLabels[$method] ?? $method }}</span>
+                            <span class="fw-semibold">{{ number_format($amount, 2) }} ₾ <span class="text-muted">· {{ round($amount / $channelTotal * 100) }}%</span></span>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -316,6 +368,28 @@
                         pointRadius: 4,
                         tension: 0.4,
                         fill: true,
+                        yAxisID: 'yRevenue',
+                    },
+                    {
+                        label: '{{ __("In store") }}',
+                        data: monthlyData.inStore,
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        pointRadius: 2,
+                        tension: 0.4,
+                        fill: false,
+                        yAxisID: 'yRevenue',
+                    },
+                    {
+                        label: '{{ __("Online") }}',
+                        data: monthlyData.online,
+                        borderColor: '#0ea5e9',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        pointRadius: 2,
+                        tension: 0.4,
+                        fill: false,
                         yAxisID: 'yRevenue',
                     },
                     {
