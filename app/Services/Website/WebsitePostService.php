@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Website;
 
 use App\Models\Media;
+use App\Models\Post;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\WebsiteMenuRepositoryInterface;
 use App\Repositories\Contracts\WebsitePostRepositoryInterface;
@@ -34,6 +35,45 @@ class WebsitePostService
         }
 
         return Storage::disk('public')->url($value);
+    }
+
+    /**
+     * Published posts, newest first, for the site's blog list and news sections.
+     *
+     * @return array{locale: string, posts: list<array{slug: string, title: string, excerpt: string, category: string, published_at: string|null, feature_image: string|null}>}
+     */
+    public function listPosts(string $requestedLocale, int $limit): array
+    {
+        $defaultLocale = strtolower($this->langRepo->defaultLocale());
+        $locale = $requestedLocale !== '' ? $requestedLocale : $defaultLocale;
+
+        $posts = Post::query()
+            ->where('published', true)
+            ->with('translations')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(function (Post $post) use ($locale, $defaultLocale): ?array {
+                $translation = $this->resolveTranslation($post, $locale, $defaultLocale);
+                if ($translation === null) {
+                    return null;
+                }
+
+                return [
+                    'slug' => (string) $translation->slug,
+                    'title' => (string) $translation->title,
+                    'excerpt' => (string) ($translation->excerpt ?? ''),
+                    'category' => (string) ($post->category ?? ''),
+                    'published_at' => $post->published_at?->format('Y-m-d'),
+                    'feature_image' => $this->toAssetUrl($post->feature_image),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        return ['locale' => $locale, 'posts' => $posts];
     }
 
     public function buildPostData(string $slug, string $locale): ?array

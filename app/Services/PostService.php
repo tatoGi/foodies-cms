@@ -13,6 +13,7 @@ use App\Models\PostTranslation;
 use App\Repositories\Contracts\BlockTypeRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\PostRepositoryInterface;
+use App\Services\Website\RevalidateFrontendService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,7 @@ class PostService
         private readonly BlockTypeRepositoryInterface $blockTypeRepository,
         private readonly LanguageRepositoryInterface $languageRepository,
         private readonly BlockNormalizationService $blockNormalizationService,
+        private readonly RevalidateFrontendService $frontend,
     ) {}
 
     /**
@@ -122,7 +124,7 @@ class PostService
 
     public function create(StorePostRequest $request): Post
     {
-        return DB::transaction(function () use ($request): Post {
+        $post = DB::transaction(function () use ($request): Post {
             $post = $this->postRepository->create([
                 'category' => trim((string) $request->input('category', '')) ?: null,
                 'feature_image' => trim((string) $request->input('feature_image', '')) ?: null,
@@ -150,11 +152,14 @@ class PostService
 
             return $post;
         });
+        $this->frontend->revalidate($this->frontendTags($post));
+
+        return $post;
     }
 
     public function update(UpdatePostRequest $request, Post $post): Post
     {
-        return DB::transaction(function () use ($request, $post): Post {
+        $post = DB::transaction(function () use ($request, $post): Post {
             $this->postRepository->update($post, [
                 'category' => trim((string) $request->input('category', '')) ?: null,
                 'feature_image' => trim((string) $request->input('feature_image', '')) ?: null,
@@ -182,11 +187,27 @@ class PostService
 
             return $post;
         });
+        $this->frontend->revalidate($this->frontendTags($post));
+
+        return $post;
     }
 
     public function delete(Post $post): void
     {
+        $tags = $this->frontendTags($post);
         $this->postRepository->delete($post);
+        $this->frontend->revalidate($tags);
+    }
+
+    /** The blog list, each post page and the pages that show latest news. */
+    private function frontendTags(Post $post): array
+    {
+        $slugs = $post->translations()->pluck('slug')
+            ->filter(fn (mixed $slug): bool => is_string($slug) && $slug !== '')
+            ->map(fn (string $slug): string => 'post:'.$slug)
+            ->all();
+
+        return array_values(array_merge(['posts', 'pages'], $slugs));
     }
 
     public function reorder(array $orderedIds): void

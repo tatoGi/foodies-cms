@@ -73,6 +73,7 @@ Route::prefix('web')->group(function () {
     Route::delete('/cart/items/{productId}', [CartController::class, 'destroy'])->name('api.website.cart.destroy');
 
     // Dynamically slug-based routes
+    Route::get('/posts', [PostController::class, 'index'])->name('api.website.posts.index');
     Route::get('/blog/{slug}', [PostController::class, 'show'])->name('api.website.blog.show');
     Route::get('/projects/{slug}', [PostController::class, 'show'])->name('api.website.project.show');
     Route::get('/project/{slug}', [PostController::class, 'show'])->name('api.website.project.singular.show');

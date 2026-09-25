@@ -45,7 +45,7 @@ class SitePageTemplateSeeder extends Seeder
                 [
                     'label' => $block['ka'],
                     'description' => $block['en'],
-                    'scope' => 'page',
+                    'scope' => $block['scope'] ?? 'page',
                     'icon' => 'bi-layout-text-window',
                     'schema' => [
                         'fields' => $fields,
@@ -70,7 +70,7 @@ class SitePageTemplateSeeder extends Seeder
         }
     }
 
-    /** @return list<array{key: string, ka: string, en: string, fields: list<array<string, mixed>>}> */
+    /** @return list<array{key: string, ka: string, en: string, scope?: string, fields: list<array<string, mixed>>}> */
     private function blocks(): array
     {
         $buttons = [
@@ -298,6 +298,18 @@ class SitePageTemplateSeeder extends Seeder
                     $this->field('background_image', 'image', 'ფონი', 'Background'),
                     $this->field('bottom_text', 'textarea', 'ქვედა ტექსტი', 'Bottom text'),
                     ...$buttons,
+                ],
+            ],
+            [
+                'key' => 'blog_article', 'ka' => 'ბლოგის სტატია', 'en' => 'Blog article', 'scope' => 'post',
+                'fields' => [
+                    $this->field('category', 'text', 'კატეგორია', 'Category'),
+                    $this->field('detail_image', 'image', 'მთავარი სურათი', 'Main image'),
+                    $this->repeater('paragraphs', 'აბზაცები', 'Paragraphs', [$this->field('text', 'textarea', 'ტექსტი', 'Text')]),
+                    $this->field('pull_quote', 'textarea', 'ციტატა', 'Pull quote'),
+                    $this->field('secondary_image', 'image', 'მეორე სურათი', 'Second image'),
+                    $this->field('closing_paragraph', 'textarea', 'ბოლო აბზაცი', 'Closing paragraph'),
+                    $this->repeater('tags', 'თეგები', 'Tags', [$this->field('text', 'text', 'თეგი', 'Tag')]),
                 ],
             ],
         ];
