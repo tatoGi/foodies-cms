@@ -14,6 +14,7 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Models\Product;
 use App\Services\MenuPageSlugSyncService;
+use App\Services\Website\RevalidateFrontendService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,7 @@ class MenuController extends Controller
 {
     public function __construct(
         private readonly MenuPageSlugSyncService $menuPageSlugSyncService,
+        private readonly RevalidateFrontendService $frontend,
     ) {}
 
     public function index(): View
@@ -64,6 +66,7 @@ class MenuController extends Controller
 
             $this->syncMenuItems($menu, (array) $request->input('items', []));
         });
+        $this->frontend->revalidate(['navigation']);
 
         return redirect()->route('admin.menus.index')
             ->with('success', __('Menu created successfully.'));
@@ -96,6 +99,7 @@ class MenuController extends Controller
 
             $this->syncMenuItems($menu, (array) $request->input('items', []));
         });
+        $this->frontend->revalidate(['navigation']);
 
         return redirect()->route('admin.menus.index')
             ->with('success', __('Menu updated successfully.'));
@@ -104,6 +108,7 @@ class MenuController extends Controller
     public function destroy(Menu $menu): RedirectResponse
     {
         $menu->delete();
+        $this->frontend->revalidate(['navigation']);
 
         return redirect()->route('admin.menus.index')
             ->with('success', __('Menu deleted successfully.'));
