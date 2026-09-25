@@ -15,6 +15,7 @@ class SiteDemoSeeder extends Seeder
             SitePageTemplateSeeder::class,
             SitePagesDemoSeeder::class,
             BlogDemoSeeder::class,
+            SiteNavigationDemoSeeder::class,
         ]);
     }
 }

@@ -1,0 +1,67 @@
+{
+  "header": [
+    {
+      "url": "/",
+      "labels": {
+        "ka": "მთავარი",
+        "en": "Home"
+      }
+    },
+    {
+      "url": "/menu",
+      "labels": {
+        "ka": "მენიუ",
+        "en": "Menu"
+      }
+    },
+    {
+      "url": "/about",
+      "labels": {
+        "ka": "ჩვენს შესახებ",
+        "en": "About"
+      }
+    },
+    {
+      "url": "/gallery",
+      "labels": {
+        "ka": "ჩვენი გალერეა",
+        "en": "Our Gallery"
+      }
+    },
+    {
+      "url": "/reservation",
+      "labels": {
+        "ka": "ჯავშანი",
+        "en": "Reservation"
+      }
+    },
+    {
+      "url": "/blog",
+      "labels": {
+        "ka": "ბლოგი",
+        "en": "Blog"
+      }
+    },
+    {
+      "url": "/history",
+      "labels": {
+        "ka": "ჩვენი ისტორია",
+        "en": "Our History"
+      }
+    },
+    {
+      "url": "/faq",
+      "labels": {
+        "ka": "ხშირი კითხვები",
+        "en": "FAQ Page"
+      }
+    },
+    {
+      "url": "/contact",
+      "labels": {
+        "ka": "კონტაქტი",
+        "en": "Contact"
+      }
+    }
+  ]
+}

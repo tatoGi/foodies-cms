@@ -139,6 +139,25 @@ class SiteDemoSeederTest extends TestCase
         }
     }
 
+    public function test_demo_seeder_creates_the_header_menu_once(): void
+    {
+        Storage::fake('public');
+        $this->createLanguage('ka');
+        $this->createLanguage('en', false);
+
+        $this->seed(SiteDemoSeeder::class);
+        $this->seed(SiteDemoSeeder::class);
+
+        $ka = $this->getJson('/api/web/navigation?locale=ka')->assertOk()->json('headerMenuItems');
+        $en = $this->getJson('/api/web/navigation?locale=en')->assertOk()->json('headerMenuItems');
+        $this->assertSame(
+            ['/', '/menu', '/about', '/gallery', '/reservation', '/blog', '/history', '/faq', '/contact'],
+            array_column($ka, 'url')
+        );
+        $this->assertSame('მთავარი', $ka[0]['label']);
+        $this->assertSame('Home', $en[0]['label']);
+    }
+
     public function test_page_api_returns_about_blocks_in_order_for_both_locales(): void
     {
         Storage::fake('public');
