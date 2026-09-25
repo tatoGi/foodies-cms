@@ -27,6 +27,7 @@
     <div class="row mb-4">
         <div class="col-lg-6">
             <form action="{{ route('admin.products.index') }}" method="GET" class="d-flex gap-2">
+                <input type="hidden" name="category" value="{{ $activeCategory }}">
                 <input type="search" name="q" value="{{ $search }}" class="form-control form-control-lg"
                     placeholder="{{ __('Search by name, ID or SKU...') }}">
                 <button type="submit" class="btn btn-primary px-4">{{ __('Search') }}</button>
@@ -85,6 +86,18 @@
 
     <div id="reorder-feedback" class="d-none mb-3"></div>
 
+    @if($categoryTabs !== [])
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            @foreach($categoryTabs as $tab)
+                <a href="{{ route('admin.products.index', array_filter(['category' => $tab['key'], 'q' => $search !== '' ? $search : null])) }}"
+                    class="btn rounded-pill {{ $activeCategory === $tab['key'] ? 'btn-dark' : 'btn-outline-secondary' }}">
+                    {{ $tab['name'] }}
+                    <span class="badge {{ $activeCategory === $tab['key'] ? 'text-bg-light' : 'text-bg-secondary' }} ms-1">{{ $tab['count'] }}</span>
+                </a>
+            @endforeach
+        </div>
+    @endif
+
     <div class="dashboard-panel premium-shadow overflow-hidden">
         <div class="panel-body p-0">
             <div class="table-responsive" data-mobile-columns="true">
@@ -100,13 +113,7 @@
                                 {{ __('Price') }}
                             </th>
                             <th class="py-3 text-muted small fw-bold uppercase letter-spacing-1 table-col-secondary">
-                                {{ __('Sale Price') }}
-                            </th>
-                            <th class="py-3 text-muted small fw-bold uppercase letter-spacing-1 table-col-secondary">
                                 {{ __('Category') }}
-                            </th>
-                            <th class="py-3 text-muted small fw-bold uppercase letter-spacing-1 table-col-secondary">
-                                {{ __('Stock') }}
                             </th>
                             <th class="py-3 text-muted small fw-bold uppercase letter-spacing-1 text-center">
                                 {{ __('Status') }}
@@ -158,23 +165,23 @@
                                 <td class="py-4 table-col-secondary"><code>{{ $product->sku }}</code></td>
                                 <td class="py-4 table-col-secondary fw-bold text-success">
                                     ₾{{ number_format((float) $product->price, 2) }}</td>
-                                <td class="py-4 table-col-secondary fw-bold text-danger">
-                                    @if($product->sale_price)
-                                        ₾{{ number_format((float) $product->sale_price, 2) }}
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
                                 <td class="py-4 table-col-secondary">
-                                    @if($product->category)
-                                        <span class="badge-soft badge-secondary">{{ $product->category }}</span>
+                                    @php
+                                        $categoryTranslation = $product->productCategory?->translations->firstWhere('locale', $currentLocale)
+                                            ?? $product->productCategory?->translations->firstWhere('locale', 'ka')
+                                            ?? $product->productCategory?->translations->first();
+                                        $categoryName = $categoryTranslation?->name ?? $product->category;
+                                    @endphp
+                                    @if($categoryName)
+                                        <span class="badge-soft badge-secondary">{{ $categoryName }}</span>
                                     @else
                                         <span class="text-muted">—</span>
                                     @endif
                                 </td>
-                                <td class="py-4 table-col-secondary">{{ number_format((int) $product->stock) }}</td>
                                 <td class="py-4 text-center">
-                                    @if($product->published)
+                                    @if($product->isSyncedFromPos() && ! $product->is_available)
+                                        <span class="badge-soft badge-secondary">ამოიწურა</span>
+                                    @elseif($product->published)
                                         <span class="badge-soft badge-success">{{ __('Published') }}</span>
                                     @else
                                         <span class="badge-soft badge-secondary">{{ __('Draft') }}</span>
@@ -200,7 +207,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-5 text-center text-muted">
+                                <td colspan="7" class="py-5 text-center text-muted">
                                     <i class="bi bi-box-seam h1 d-block mb-3 opacity-25"></i>
                                     {{ __('No products found.') }}
                                 </td>

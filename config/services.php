@@ -120,4 +120,9 @@ return [
         'provider' => env('SEO_PROVIDER', 'openrouter'),
     ],
 
+    'frontend' => [
+        'revalidate_url' => env('FRONTEND_REVALIDATE_URL'),
+        'revalidate_secret' => env('FRONTEND_REVALIDATE_SECRET'),
+    ],
+
 ];

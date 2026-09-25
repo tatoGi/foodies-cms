@@ -83,5 +83,6 @@ Route::prefix('web')->group(function () {
 
     // Legacy/Fallback
     Route::get('/news/{slug}', [PostController::class, 'show'])->name('api.website.post.show');
+    Route::get('/pages', [PageController::class, 'index'])->name('api.website.pages.index');
     Route::get('/pages/{slug}', [PageController::class, 'show'])->name('api.website.page.show');
 });

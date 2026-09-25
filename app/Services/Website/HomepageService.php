@@ -60,13 +60,18 @@ class HomepageService
             }
         }
 
+        $products = $homepage['relations']['products'] ?? [];
+        if ($products === []) {
+            $products = $this->featuredProducts($locale, $defaultLocale);
+        }
+
         return [
             'template' => $template,
             'homepage' => $homepage,
             'latest_project' => $latestProjectPayload,
             'relations' => [
                 'posts' => $homepage['relations']['posts'] ?? [],
-                'products' => $homepage['relations']['products'] ?? [],
+                'products' => $products,
                 'children' => $homepage['relations']['children'] ?? [],
                 'parent' => $homepage['relations']['parent'] ?? null,
             ],
@@ -190,14 +195,22 @@ class HomepageService
      */
     private function featuredProducts(string $locale, string $fallbackLocale): array
     {
-        return Product::query()
-            ->where('is_featured', true)
+        $base = Product::query()
             ->where('published', true)
             ->where('is_active', true)
-            ->with('translations.blocks')
+            ->with(['translations.blocks', 'productCategory.translations']);
+
+        $featured = (clone $base)
+            ->where('is_featured', true)
             ->orderBy('sort_order')
             ->orderByDesc('id')
-            ->get()
+            ->get();
+
+        $rows = $featured->isNotEmpty()
+            ? $featured
+            : (clone $base)->orderBy('sort_order')->orderBy('id')->limit(12)->get();
+
+        return $rows
             ->map(fn (Product $product): ?array => $this->mapProduct($product, $locale, $fallbackLocale))
             ->filter()
             ->values()
@@ -219,6 +232,7 @@ class HomepageService
             $excerpt = Str::limit(strip_tags((string) ($translation->content ?? '')), 180);
         }
 
+        $product->loadMissing('productCategory.translations');
         $blocks = $this->mapBlocks($product, $locale, $fallbackLocale);
 
         $featureImage = $this->toAssetUrl($product->feature_image)
@@ -230,7 +244,8 @@ class HomepageService
             'title' => (string) $translation->title,
             'slug' => (string) $translation->slug,
             'excerpt' => $excerpt,
-            'category' => (string) ($product->category ?? ''),
+            'category' => $this->categoryName($product, $locale, $fallbackLocale),
+            'is_available' => (bool) $product->is_available,
             'price' => $this->resolveDisplayPrice($product, $translation),
             'stock' => (int) $product->stock,
             'is_featured' => (bool) $product->is_featured,
@@ -265,6 +280,22 @@ class HomepageService
         }
 
         return null;
+    }
+
+    private function categoryName(Product $product, string $locale, string $fallbackLocale): string
+    {
+        $translations = $product->productCategory?->translations;
+        if ($translations !== null) {
+            $translation = $translations->firstWhere('locale', $locale)
+                ?? $translations->firstWhere('locale', $fallbackLocale)
+                ?? $translations->first();
+            $name = trim((string) ($translation?->name ?? ''));
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        return (string) ($product->category ?? '');
     }
 
     private function resolveDisplayPrice(Product $product, mixed $translation): float

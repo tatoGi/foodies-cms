@@ -9,7 +9,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 interface ProductRepositoryInterface
 {
-    public function paginateWithTranslations(int $perPage = 15, string $search = ''): LengthAwarePaginator;
+    public function paginateWithTranslations(int $perPage = 15, string $search = '', ?string $category = null): LengthAwarePaginator;
+
+    /**
+     * @return list<array{id: int, name: string, count: int}>
+     */
+    public function categoriesWithProductCounts(string $search, string $locale): array;
+
+    public function countWithoutCategory(string $search): int;
 
     public function create(array $data): Product;
 

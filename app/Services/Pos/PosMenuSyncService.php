@@ -10,18 +10,24 @@ use App\Models\ProductCategory;
 use App\Models\ProductCategoryTranslation;
 use App\Models\ProductTranslation;
 use App\Services\SlugService;
+use App\Services\Website\RevalidateFrontendService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Applies a full FoodEase menu snapshot. POS-owned fields (name, price, availability, category,
- * ingredients, add-ons) are overwritten; CMS-owned fields (slug, SEO, content, images, publishing)
- * are only written when a record is first created. See docs/INTEGRATION_MASTER_PLAN.md section 3.
+ * ingredients, add-ons) are overwritten; CMS-owned fields (slug, SEO, content, publishing)
+ * are only written when a record is first created. A POS product cover follows the POS photo:
+ * a new file replaces it, and deleting the file in the POS clears it. See docs/INTEGRATION_MASTER_PLAN.md section 3.
  */
 class PosMenuSyncService
 {
     private const SOURCE = 'pos';
 
-    public function __construct(private readonly SlugService $slugs) {}
+    public function __construct(
+        private readonly SlugService $slugs,
+        private readonly RevalidateFrontendService $frontend,
+    ) {}
 
     /**
      * @param  array{categories?: array<int, array<string, mixed>>, items?: array<int, array<string, mixed>>}  $snapshot
@@ -53,7 +59,32 @@ class PosMenuSyncService
 
         $device->update(['last_sync_at' => now()]);
 
+        $this->frontend->revalidate($this->revalidateTags($items));
+
         return ['categories' => count($categories), 'items' => count($items)];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return list<string>
+     */
+    private function revalidateTags(array $items): array
+    {
+        $externalIds = array_map(fn (array $item): int => (int) $item['external_id'], $items);
+        $slugs = $externalIds === []
+            ? []
+            : ProductTranslation::query()
+                ->whereHas('product', function ($query) use ($externalIds): void {
+                    $query->where('external_source', self::SOURCE)->whereIn('external_id', $externalIds);
+                })
+                ->pluck('slug')
+                ->filter(fn (mixed $slug): bool => is_string($slug) && $slug !== '')
+                ->unique()
+                ->map(fn (string $slug): string => 'product:'.$slug)
+                ->values()
+                ->all();
+
+        return array_merge(['menu', 'status'], $slugs);
     }
 
     /** @param  array<string, mixed>  $data */
@@ -104,6 +135,7 @@ class PosMenuSyncService
             $product->published = true;
         }
         $product->save();
+        $this->syncCover($product, $data['image'] ?? null);
 
         foreach ($data['name'] as $locale => $title) {
             $translation = $product->translations()->firstOrNew(['locale' => $locale]);
@@ -124,6 +156,50 @@ class PosMenuSyncService
             'name' => $row['name'],
             'price' => $row['price'],
         ]);
+    }
+
+    private function syncCover(Product $product, mixed $image): void
+    {
+        if (! is_array($image)) {
+            $this->clearSyncedCover($product);
+
+            return;
+        }
+
+        $extension = match ((string) ($image['mime'] ?? '')) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+            default => null,
+        };
+        $binary = base64_decode((string) ($image['data'] ?? ''), true);
+        if ($extension === null || ! is_string($binary) || $binary === '' || strlen($binary) > 5 * 1024 * 1024) {
+            return;
+        }
+
+        $path = 'pos-menu/'.$product->external_id.'.'.$extension;
+        $previous = (string) $product->cover_image;
+        if ($previous !== '' && $previous !== $path && str_starts_with($previous, 'pos-menu/')) {
+            Storage::disk('public')->delete($previous);
+        }
+        Storage::disk('public')->put($path, $binary);
+        if ($product->cover_image !== $path) {
+            $product->cover_image = $path;
+            $product->save();
+        }
+    }
+
+    private function clearSyncedCover(Product $product): void
+    {
+        $previous = (string) $product->cover_image;
+        if ($previous === '' || ! str_starts_with($previous, 'pos-menu/')) {
+            return;
+        }
+
+        Storage::disk('public')->delete($previous);
+        $product->cover_image = null;
+        $product->save();
     }
 
     /**

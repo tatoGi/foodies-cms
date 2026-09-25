@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Website;
 
 use App\Models\Media;
+use App\Models\Page;
+use App\Models\PageSlugAlias;
 use App\Models\Product;
 use App\Models\Reel;
 use App\Repositories\Contracts\BlockTypeRepositoryInterface;
@@ -26,6 +28,38 @@ class WebsitePageService
         private readonly LanguageRepositoryInterface $langRepo,
         private readonly BlockTypeRepositoryInterface $blockTypeRepository,
     ) {}
+
+    /**
+     * @return array{pages: array<int, array{is_home: bool, updated_at: string|null, slugs: array<string, string>}>}
+     */
+    public function publishedIndex(): array
+    {
+        $pages = Page::query()
+            ->where('published', true)
+            ->with('translations')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(static function (Page $page): array {
+                $slugs = [];
+                foreach ($page->translations as $translation) {
+                    $slug = trim((string) $translation->slug);
+                    if ($slug !== '') {
+                        $slugs[(string) $translation->locale] = $slug;
+                    }
+                }
+
+                return [
+                    'is_home' => (bool) $page->is_home,
+                    'updated_at' => $page->updated_at?->toAtomString(),
+                    'slugs' => $slugs,
+                ];
+            })
+            ->values()
+            ->all();
+
+        return ['pages' => $pages];
+    }
 
     public function buildPageData(string $slug, ?string $requestedLocale = null): ?array
     {
@@ -49,7 +83,7 @@ class WebsitePageService
             : $this->pageRepo->findPublishedBySlug($normalizedSlug);
 
         if ($translation === null) {
-            return null;
+            return $this->redirectForAlias($normalizedSlug, $locale, $defaultLocale);
         }
 
         $page = $translation->page;
@@ -223,9 +257,45 @@ class WebsitePageService
                 'keywords' => $resolvedTranslation?->keywords,
                 'canonical_url' => $resolvedTranslation?->canonical_url,
                 'og_image' => $this->toAssetUrl($page->feature_image),
+                'locales' => $page->translations
+                    ->mapWithKeys(static function ($translation): array {
+                        $slug = trim((string) ($translation->slug ?? ''));
+
+                        return $slug === '' ? [] : [(string) $translation->locale => $slug];
+                    })
+                    ->all(),
             ],
             'media_alts' => $mediaAlts,
         ];
+    }
+
+    /**
+     * @return array{redirect: array{slug: string}}|null
+     */
+    private function redirectForAlias(string $slug, string $locale, string $defaultLocale): ?array
+    {
+        $alias = PageSlugAlias::query()->where('slug', $slug)->first();
+        if ($alias === null) {
+            return null;
+        }
+
+        $page = Page::query()
+            ->whereKey($alias->page_id)
+            ->where('published', true)
+            ->with('translations')
+            ->first();
+
+        if ($page === null) {
+            return null;
+        }
+
+        $translation = $this->resolveTranslation($page, $locale, $defaultLocale);
+        $canonical = trim((string) ($translation?->slug ?? ''));
+        if ($canonical === '' || $canonical === $slug) {
+            return null;
+        }
+
+        return ['redirect' => ['slug' => $canonical]];
     }
 
     /** Recursively collect image-like paths from block data arrays. */

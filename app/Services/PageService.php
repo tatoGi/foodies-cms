@@ -9,12 +9,14 @@ use App\Http\Requests\Admin\UpdatePageRequest;
 use App\Models\BlockTypeDefinition;
 use App\Models\MenuItem;
 use App\Models\Page;
+use App\Models\PageSlugAlias;
 use App\Models\PageTranslation;
 use App\Models\Post;
 use App\Models\Product;
 use App\Repositories\Contracts\BlockTypeRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\PageRepositoryInterface;
+use App\Services\Website\RevalidateFrontendService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +29,7 @@ class PageService
         private readonly LanguageRepositoryInterface $languageRepository,
         private readonly BlockNormalizationService $blockNormalizationService,
         private readonly MenuPageSlugSyncService $menuPageSlugSyncService,
+        private readonly RevalidateFrontendService $frontend,
     ) {}
 
     /**
@@ -141,7 +144,7 @@ class PageService
 
     public function create(StorePageRequest $request): Page
     {
-        return DB::transaction(function () use ($request): Page {
+        $page = DB::transaction(function () use ($request): Page {
             $page = $this->pageRepository->create([
                 'parent_id' => $request->boolean('is_home') ? null : ($request->integer('parent_id') ?: null),
                 'template' => (string) $request->string('template'),
@@ -179,11 +182,15 @@ class PageService
 
             return $page;
         });
+
+        $this->refreshFrontend($page);
+
+        return $page;
     }
 
     public function update(UpdatePageRequest $request, Page $page): Page
     {
-        return DB::transaction(function () use ($request, $page): Page {
+        $page = DB::transaction(function () use ($request, $page): Page {
             $this->pageRepository->update($page, [
                 'parent_id' => $request->boolean('is_home') ? null : ($request->integer('parent_id') ?: null),
                 'template' => (string) $request->string('template'),
@@ -221,11 +228,44 @@ class PageService
 
             return $page;
         });
+
+        $this->refreshFrontend($page);
+
+        return $page;
     }
 
     public function delete(Page $page): void
     {
+        $page->loadMissing('translations');
+        $tags = $this->frontendTags($page);
         $this->pageRepository->delete($page);
+        $this->frontend->revalidate($tags);
+    }
+
+    private function refreshFrontend(Page $page): void
+    {
+        $page->load('translations');
+        $this->frontend->revalidate($this->frontendTags($page));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function frontendTags(Page $page): array
+    {
+        $tags = ['pages'];
+        if ($page->is_home) {
+            $tags[] = 'page:home';
+        }
+
+        foreach ($page->translations as $translation) {
+            $slug = trim((string) $translation->slug);
+            if ($slug !== '') {
+                $tags[] = 'page:'.$slug;
+            }
+        }
+
+        return $tags;
     }
 
     public function reorder(array $orderedIds): void
@@ -367,8 +407,10 @@ class PageService
             $canonicalUrl = trim((string) ($canonicalUrls[$locale] ?? ''));
 
             $slug = trim((string) ($slugs[$locale] ?? ''));
+            $previousSlug = trim((string) ($page->translations()->where('locale', $locale)->value('slug') ?? ''));
 
             if ($name !== '') {
+                $this->rememberPreviousSlug($page, $locale, $previousSlug, $slug);
                 $translation = $page->translations()->updateOrCreate(
                     ['locale' => $locale],
                     [
@@ -397,6 +439,34 @@ class PageService
         $page->translations()
             ->whereNotIn('locale', $handledLocales)
             ->delete();
+    }
+
+    public function rememberPreviousSlug(Page $page, string $locale, string $previousSlug, string $nextSlug): void
+    {
+        $previousSlug = trim($previousSlug);
+        $nextSlug = trim($nextSlug);
+
+        if ($nextSlug !== '') {
+            PageSlugAlias::query()->where('page_id', $page->id)->where('slug', $nextSlug)->delete();
+        }
+
+        if ($previousSlug === '' || $previousSlug === $nextSlug) {
+            return;
+        }
+
+        $takenByAnotherPage = PageTranslation::query()
+            ->where('slug', $previousSlug)
+            ->where('page_id', '!=', $page->id)
+            ->exists();
+
+        if ($takenByAnotherPage) {
+            return;
+        }
+
+        PageSlugAlias::query()->updateOrCreate(
+            ['slug' => $previousSlug],
+            ['page_id' => $page->id, 'locale' => $locale]
+        );
     }
 
     /**

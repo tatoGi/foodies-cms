@@ -93,7 +93,7 @@ class WebsiteProductService
         $product = Product::query()
             ->where('published', true)
             ->where('is_active', true)
-            ->with('translations.blocks')
+            ->with(['translations.blocks', 'ingredients', 'addons', 'productCategory.translations'])
             ->whereHas('translations', function ($q) use ($slug) {
                 $q->where('slug', $slug);
             })
@@ -137,8 +137,18 @@ class WebsiteProductService
                 'on_sale' => $onSale,
                 'is_featured' => (bool) $product->is_featured,
                 'brand' => (string) ($product->brand ?? ''),
-                'category' => (string) ($resolvedTranslation?->category ?? $product->category ?? ''),
+                'category' => $this->categoryName($product, $locale, $defaultLocale)
+                    ?: (string) ($resolvedTranslation?->category ?? $product->category ?? ''),
+                'is_available' => (bool) $product->is_available,
                 'cover_image' => $this->toAssetUrl($product->cover_image),
+                'ingredients' => $product->ingredients->map(fn ($row): array => [
+                    'name' => $this->localizedName((array) $row->name, $locale, $defaultLocale),
+                    'is_removable' => (bool) $row->is_removable,
+                ])->values()->all(),
+                'addons' => $product->addons->map(fn ($row): array => [
+                    'name' => $this->localizedName((array) $row->name, $locale, $defaultLocale),
+                    'price' => number_format((float) $row->price, 2, '.', ''),
+                ])->values()->all(),
                 'feature_image' => $this->toAssetUrl($product->feature_image),
                 'gallery' => collect($product->gallery ?? [])->map(fn ($image) => $this->toAssetUrl($image))->filter()->values()->all(),
                 'colors' => collect($product->colors ?? [])->values()->all(),
@@ -194,6 +204,42 @@ class WebsiteProductService
         }
 
         return null;
+    }
+
+    private function categoryName(Product $product, string $locale, string $fallback): string
+    {
+        $translations = $product->productCategory?->translations;
+        if ($translations === null) {
+            return '';
+        }
+
+        $translation = $translations->firstWhere('locale', $locale)
+            ?? $translations->firstWhere('locale', $fallback)
+            ?? $translations->first();
+
+        return trim((string) ($translation?->name ?? ''));
+    }
+
+    /**
+     * @param  array<string, mixed>  $name
+     */
+    private function localizedName(array $name, string $locale, string $fallback): string
+    {
+        foreach ([$locale, $fallback] as $code) {
+            $value = trim((string) ($name[$code] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        foreach ($name as $value) {
+            $text = trim((string) $value);
+            if ($text !== '') {
+                return $text;
+            }
+        }
+
+        return '';
     }
 
     private function toAssetUrl(mixed $path): ?string

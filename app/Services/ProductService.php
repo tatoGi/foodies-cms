@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\BlockTypeDefinition;
 use App\Models\Page;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\ProductTranslation;
 use App\Repositories\Contracts\BlockTypeRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
@@ -26,14 +27,103 @@ class ProductService
         private readonly BlockNormalizationService $blockNormalizationService,
     ) {}
 
-    /** @return array{products: LengthAwarePaginator, currentLocale: string, search:string} */
-    public function buildIndexViewData(string $search = ''): array
+    /**
+     * @return array{
+     *     products: LengthAwarePaginator,
+     *     categoryTabs: list<array{key: string, name: string, count: int}>,
+     *     activeCategory: string,
+     *     currentLocale: string,
+     *     search: string
+     * }
+     */
+    public function buildIndexViewData(string $search = '', string $category = ''): array
     {
+        $locale = app()->getLocale();
+        $tabs = $this->categoryTabs($search, $locale);
+        $active = $this->activeCategory($category, $tabs);
+
         return [
-            'products' => $this->productRepository->paginateWithTranslations(10, $search),
-            'currentLocale' => app()->getLocale(),
+            'products' => $this->productRepository->paginateWithTranslations(10, $search, $active),
+            'categoryTabs' => $tabs,
+            'activeCategory' => $active,
+            'currentLocale' => $locale,
             'search' => $search,
         ];
+    }
+
+    /**
+     * @return list<array{key: string, name: string, count: int}>
+     */
+    private function categoryTabs(string $search, string $locale): array
+    {
+        $categories = $this->productRepository->categoriesWithProductCounts($search, $locale);
+        $uncategorized = $this->productRepository->countWithoutCategory($search);
+        $tabs = [[
+            'key' => 'all',
+            'name' => 'ყველა',
+            'count' => $uncategorized + array_sum(array_column($categories, 'count')),
+        ]];
+
+        foreach ($categories as $category) {
+            $tabs[] = [
+                'key' => (string) $category['id'],
+                'name' => $category['name'],
+                'count' => $category['count'],
+            ];
+        }
+
+        if ($uncategorized > 0) {
+            $tabs[] = [
+                'key' => 'none',
+                'name' => 'უსათაურო',
+                'count' => $uncategorized,
+            ];
+        }
+
+        return $tabs;
+    }
+
+    /**
+     * @param  list<array{key: string, name: string, count: int}>  $tabs
+     */
+    private function activeCategory(string $requested, array $tabs): string
+    {
+        $keys = array_column($tabs, 'key');
+        if ($requested !== '' && in_array($requested, $keys, true)) {
+            return $requested;
+        }
+
+        foreach ($tabs as $tab) {
+            if ($tab['key'] !== 'all') {
+                return $tab['key'];
+            }
+        }
+
+        return 'all';
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function productCategoryOptions(): array
+    {
+        $locale = app()->getLocale();
+
+        return ProductCategory::query()
+            ->with('translations')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(static function (ProductCategory $category) use ($locale): array {
+                $translation = $category->translations->firstWhere('locale', $locale)
+                    ?? $category->translations->firstWhere('locale', 'ka')
+                    ?? $category->translations->first();
+
+                return [
+                    'id' => $category->id,
+                    'name' => $translation?->name ?? '#'.$category->id,
+                ];
+            })
+            ->all();
     }
 
     /** @return array<string, mixed> */
@@ -47,7 +137,6 @@ class ProductService
         $selectedBlockTypes = $this->normalizeSelectedBlockTypes((array) old('block_types', []), $blockDefinitions);
         $blockTypeOptions = $this->formatBlockTypeOptions($blockDefinitions);
         $blockTypeEditors = $this->formatBlockTypeEditors($blockDefinitions, $localeCodes);
-        $blockTypeEditors = $this->applyCreateDefaultsToBlockEditors($blockTypeEditors);
         $localeBlocks = $this->resolveLocaleBlocks($localeCodes, $selectedBlockTypes, $blockTypeEditors, null);
         $selectedPageIds = $this->selectedPageIdsFromOldInput([]);
 
@@ -61,55 +150,14 @@ class ProductService
             'localeBlocks' => $localeBlocks,
             'availablePages' => $this->availablePages(),
             'selectedPageIds' => $selectedPageIds,
-            'manualSpecDefaults' => [
-                'dimensions' => '40*60; 45*40; 40*31',
-                'height' => '52 სმ ; 48 სმ ; 43 სმ',
-                'material' => 'ხე',
-                'colors' => 'თეთრი, ყავისფერი',
-            ],
+            'productCategories' => $this->productCategoryOptions(),
         ];
-    }
-
-    /**
-     * @param  array<string, array<string, mixed>>  $blockTypeEditors
-     * @return array<string, array<string, mixed>>
-     */
-    private function applyCreateDefaultsToBlockEditors(array $blockTypeEditors): array
-    {
-        if (isset($blockTypeEditors['product_specs'])) {
-            $defaultData = (array) ($blockTypeEditors['product_specs']['default_data'] ?? []);
-            if (! isset($defaultData['items']) || ! is_array($defaultData['items']) || $defaultData['items'] === []) {
-                $defaultData['items'] = [
-                    ['label' => 'ზომა', 'value' => '40*60; 45*40; 40*31'],
-                    ['label' => 'სიმაღლე', 'value' => '52 სმ ; 48 სმ ; 43 სმ'],
-                    ['label' => 'მასალა', 'value' => 'ხე'],
-                    ['label' => 'ფერები', 'value' => 'თეთრი, ყავისფერი'],
-                ];
-            }
-            $blockTypeEditors['product_specs']['default_data'] = $defaultData;
-        }
-
-        if (isset($blockTypeEditors['product_intro'])) {
-            $defaultData = (array) ($blockTypeEditors['product_intro']['default_data'] ?? []);
-            if (trim((string) ($defaultData['material'] ?? '')) === '') {
-                $defaultData['material'] = 'ხე';
-            }
-            if (! isset($defaultData['colors']) || ! is_array($defaultData['colors']) || $defaultData['colors'] === []) {
-                $defaultData['colors'] = [
-                    ['value' => '#FFFFFF'],
-                    ['value' => '#8B4513'],
-                ];
-            }
-            $blockTypeEditors['product_intro']['default_data'] = $defaultData;
-        }
-
-        return $blockTypeEditors;
     }
 
     /** @return array<string, mixed> */
     public function buildEditViewData(Product $product): array
     {
-        $product->load('translations.blocks');
+        $product->load(['translations.blocks', 'ingredients', 'addons', 'productCategory.translations']);
 
         $locales = $this->languageRepository->getActiveLocales();
         $localeCodes = collect($locales)->pluck('code')->map(static fn ($c): string => (string) $c)->values()->all();
@@ -141,7 +189,7 @@ class ProductService
             'localeBlocks' => $localeBlocks,
             'availablePages' => $this->availablePages(),
             'selectedPageIds' => $selectedPageIds,
-            'manualSpecDefaults' => $this->resolveManualSpecDefaults($product, $localeCodes),
+            'productCategories' => $this->productCategoryOptions(),
         ];
     }
 
@@ -151,18 +199,13 @@ class ProductService
             $product = $this->productRepository->create([
                 'sort_order' => $this->productRepository->nextSortOrder(),
                 'sku' => trim((string) $request->input('sku', '')),
-                'brand' => trim((string) $request->input('brand', '')) ?: null,
                 'price' => (float) $request->input('price', 0),
-                'on_sale' => $request->boolean('on_sale'),
-                'sale_price' => $request->input('sale_price') !== null && $request->input('sale_price') !== '' ? (float) $request->input('sale_price') : null,
-                'category' => $this->resolveFallbackCategory((array) $request->input('categories', [])),
-                'stock' => (int) $request->input('stock', 0),
+                'product_category_id' => $request->filled('product_category_id') ? (int) $request->input('product_category_id') : null,
+                'stock' => 0,
                 'is_active' => $request->boolean('is_active', true),
                 'cover_image' => trim((string) $request->input('cover_image', '')) ?: null,
-                'colors' => (array) $request->input('colors', []) ?: [],
                 'block_types' => $this->normalizeBlockTypes((array) $request->input('block_types', [])),
                 'is_featured' => $request->boolean('is_featured'),
-                'show_in_reels' => $request->boolean('show_in_reels'),
                 'published' => $request->boolean('published'),
                 'published_at' => $request->input('published_at') ?: null,
             ]);
@@ -180,12 +223,7 @@ class ProductService
                 (array) $request->input('canonical_urls', []),
                 (array) $request->input('blocks', []),
                 (array) $request->file('blocks', []),
-                [
-                    'dimensions' => trim((string) $request->input('spec_dimensions', '')),
-                    'height' => trim((string) $request->input('spec_height', '')),
-                    'material' => trim((string) $request->input('spec_material', '')),
-                    'colors' => trim((string) $request->input('spec_colors', '')),
-                ]
+                (array) $request->input('excerpts', [])
             );
             $product->pages()->sync(
                 $this->normalizeSelectedPageIds((array) $request->input('page_ids', []))
@@ -206,23 +244,22 @@ class ProductService
                 }
             }
 
-            $this->productRepository->update($product, [
+            $attributes = [
                 'sku' => $fromPos ? $product->sku : trim((string) $request->input('sku', '')),
-                'brand' => trim((string) $request->input('brand', '')) ?: null,
                 'price' => $fromPos ? $product->price : (float) $request->input('price', 0),
-                'on_sale' => $request->boolean('on_sale'),
-                'sale_price' => $request->input('sale_price') !== null && $request->input('sale_price') !== '' ? (float) $request->input('sale_price') : null,
-                'category' => $fromPos ? $product->category : $this->resolveFallbackCategory((array) $request->input('categories', [])),
-                'stock' => (int) $request->input('stock', 0),
                 'is_active' => $fromPos ? $product->is_active : $request->boolean('is_active', true),
-                'cover_image' => trim((string) $request->input('cover_image', '')) ?: null,
-                'colors' => (array) $request->input('colors', []) ?: [],
+                'cover_image' => $fromPos ? $product->cover_image : (trim((string) $request->input('cover_image', '')) ?: null),
                 'block_types' => $this->normalizeBlockTypes((array) $request->input('block_types', [])),
                 'is_featured' => $request->boolean('is_featured'),
-                'show_in_reels' => $request->boolean('show_in_reels'),
                 'published' => $request->boolean('published'),
                 'published_at' => $request->input('published_at') ?: null,
-            ]);
+            ];
+            if (! $fromPos && $request->exists('product_category_id')) {
+                $attributes['product_category_id'] = $request->filled('product_category_id')
+                    ? (int) $request->input('product_category_id')
+                    : null;
+            }
+            $this->productRepository->update($product, $attributes);
 
             $this->syncTranslations(
                 $product,
@@ -237,12 +274,7 @@ class ProductService
                 (array) $request->input('canonical_urls', []),
                 (array) $request->input('blocks', []),
                 (array) $request->file('blocks', []),
-                [
-                    'dimensions' => trim((string) $request->input('spec_dimensions', '')),
-                    'height' => trim((string) $request->input('spec_height', '')),
-                    'material' => trim((string) $request->input('spec_material', '')),
-                    'colors' => trim((string) $request->input('spec_colors', '')),
-                ]
+                (array) $request->input('excerpts', [])
             );
             $product->pages()->sync(
                 $this->normalizeSelectedPageIds((array) $request->input('page_ids', []))
@@ -275,7 +307,7 @@ class ProductService
         array $canonicalUrls,
         array $blocksByLocale,
         array $blockFilesByLocale,
-        array $manualSpecs = []
+        array $excerpts = []
     ): void {
         $localeCodes = collect($this->languageRepository->getActiveLocales())->pluck('code')->map(static fn ($l): string => (string) $l)->values();
         $selectedBlockTypes = $this->normalizeBlockTypes((array) ($product->block_types ?? []));
@@ -293,6 +325,13 @@ class ProductService
             $keyword = trim((string) ($keywords[$locale] ?? ''));
             $focusKeyword = trim((string) ($focusKeywords[$locale] ?? ''));
             $canonicalUrl = trim((string) ($canonicalUrls[$locale] ?? ''));
+            $existing = $product->translations()->where('locale', $locale)->first();
+            if ($category === '' && $existing instanceof ProductTranslation) {
+                $category = (string) ($existing->category ?? '');
+            }
+            $excerpt = array_key_exists($locale, $excerpts)
+                ? (trim((string) $excerpts[$locale]) ?: null)
+                : $existing?->excerpt;
 
             if ($name !== '' || $slug !== '') {
                 $translation = $product->translations()->updateOrCreate(
@@ -301,6 +340,7 @@ class ProductService
                         'title' => $name,
                         'category' => $category !== '' ? $category : null,
                         'slug' => $slug,
+                        'excerpt' => $excerpt,
                         'content' => $content !== '' ? $content : null,
                         'meta_title' => $metaTitle !== '' ? $metaTitle : null,
                         'meta_description' => $metaDesc !== '' ? $metaDesc : null,
@@ -314,8 +354,7 @@ class ProductService
                     (array) ($blocksByLocale[$locale] ?? []),
                     (array) ($blockFilesByLocale[$locale] ?? []),
                     $selectedBlockTypes,
-                    $blockDefinitions,
-                    $manualSpecs
+                    $blockDefinitions
                 );
 
                 $handledLocales[] = $locale;
@@ -331,8 +370,7 @@ class ProductService
         array $localeBlocks,
         array $localeBlockFiles,
         array $selectedBlockTypes,
-        Collection $blockDefinitions,
-        array $manualSpecs = []
+        Collection $blockDefinitions
     ): void {
         $existingBlocksByType = $translation->blocks
             ->groupBy(static fn ($block): string => (string) $block->type)
@@ -388,8 +426,6 @@ class ProductService
             ->values()
             ->all();
 
-        $normalizedBlocks = $this->applyManualSpecsToBlocks($normalizedBlocks, $manualSpecs);
-
         $translation->blocks()->delete();
         foreach (collect($normalizedBlocks)->values() as $position => $block) {
             $translation->blocks()->create([
@@ -398,101 +434,6 @@ class ProductService
                 'sort_order' => $position,
             ]);
         }
-    }
-
-    /**
-     * @param  array<int, array{type:string,sort_order:int,data:array}>  $blocks
-     * @param  array<string, string>  $manualSpecs
-     * @return array<int, array{type:string,sort_order:int,data:array}>
-     */
-    private function applyManualSpecsToBlocks(array $blocks, array $manualSpecs): array
-    {
-        $labelToValue = [
-            'ზომა' => trim((string) ($manualSpecs['dimensions'] ?? '')),
-            'სიმაღლე' => trim((string) ($manualSpecs['height'] ?? '')),
-            'მასალა' => trim((string) ($manualSpecs['material'] ?? '')),
-            'ფერები' => trim((string) ($manualSpecs['colors'] ?? '')),
-        ];
-
-        $labelToValue = array_filter($labelToValue, static fn (string $value): bool => $value !== '');
-        if ($labelToValue === []) {
-            return $blocks;
-        }
-
-        $specIndex = collect($blocks)->search(
-            static fn (array $block): bool => (string) ($block['type'] ?? '') === 'product_specs'
-        );
-
-        if ($specIndex === false) {
-            $blocks[] = [
-                'type' => 'product_specs',
-                'sort_order' => count($blocks),
-                'data' => ['items' => []],
-            ];
-            $specIndex = count($blocks) - 1;
-        }
-
-        $items = collect((array) data_get($blocks[$specIndex], 'data.items', []))
-            ->filter(static fn ($item): bool => is_array($item))
-            ->map(static fn (array $item): array => [
-                'label' => trim((string) ($item['label'] ?? '')),
-                'value' => trim((string) ($item['value'] ?? '')),
-            ])
-            ->filter(static fn (array $item): bool => $item['label'] !== '')
-            ->values();
-
-        $normalized = [];
-        foreach ($items as $item) {
-            $normalized[$item['label']] = $item['value'];
-        }
-        foreach ($labelToValue as $label => $value) {
-            $normalized[$label] = $value;
-        }
-
-        $blocks[$specIndex]['data']['items'] = collect($normalized)
-            ->map(static fn (string $value, string $label): array => ['label' => $label, 'value' => $value])
-            ->values()
-            ->all();
-
-        return $blocks;
-    }
-
-    /**
-     * @param  array<int, string>  $localeCodes
-     * @return array{dimensions:string,height:string,material:string,colors:string}
-     */
-    private function resolveManualSpecDefaults(Product $product, array $localeCodes): array
-    {
-        $translations = $product->translations->keyBy('locale');
-        $fallbackTranslation = $product->translations->first();
-
-        $translation = null;
-        foreach ($localeCodes as $localeCode) {
-            $candidate = $translations->get($localeCode);
-            if ($candidate instanceof ProductTranslation) {
-                $translation = $candidate;
-                break;
-            }
-        }
-        if (! $translation instanceof ProductTranslation) {
-            $translation = $fallbackTranslation;
-        }
-
-        $specItems = collect($translation?->blocks ?? [])
-            ->first(static fn ($block): bool => (string) ($block->type ?? '') === 'product_specs');
-
-        $items = collect((array) data_get($specItems, 'data.items', []))
-            ->filter(static fn ($item): bool => is_array($item))
-            ->mapWithKeys(static fn (array $item): array => [
-                trim((string) ($item['label'] ?? '')) => trim((string) ($item['value'] ?? '')),
-            ]);
-
-        return [
-            'dimensions' => (string) ($items->get('ზომა', '')),
-            'height' => (string) ($items->get('სიმაღლე', '')),
-            'material' => (string) ($items->get('მასალა', '')),
-            'colors' => (string) ($items->get('ფერები', '')),
-        ];
     }
 
     /** @param Collection<int, BlockTypeDefinition> $definitions */

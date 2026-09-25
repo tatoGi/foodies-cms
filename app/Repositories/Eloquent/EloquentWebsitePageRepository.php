@@ -109,8 +109,13 @@ class EloquentWebsitePageRepository implements WebsitePageRepositoryInterface
                 'products.translations.blocks',
             ])
             ->whereIn('template', $priority)
-            ->orderByRaw("FIELD(template, 'home', 'homepage', 'main', 'index')")
             ->orderBy('id')
+            ->get()
+            ->sortBy(static function (Page $item) use ($priority): int {
+                $rank = array_search((string) $item->template, $priority, true);
+
+                return $rank === false ? count($priority) : $rank;
+            })
             ->first();
 
         if ($page instanceof Page) {

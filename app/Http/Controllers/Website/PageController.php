@@ -15,6 +15,11 @@ class PageController extends Controller
         private readonly WebsitePageService $pageService,
     ) {}
 
+    public function index(): JsonResponse
+    {
+        return response()->json($this->pageService->publishedIndex());
+    }
+
     public function show(PageShowRequest $request): JsonResponse
     {
         $data = $this->pageService->buildPageData($request->slug(), $request->localeCode());

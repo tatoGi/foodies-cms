@@ -6,6 +6,8 @@ namespace Tests\Feature\Website;
 
 use App\Services\GeneralSettingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class BreadcrumbSettingTest extends TestCase
@@ -31,5 +33,21 @@ class BreadcrumbSettingTest extends TestCase
 
         $this->assertNull($settings['breadcrumbImage']);
         $this->assertSame('#1c1714', $settings['breadcrumbColor']);
+    }
+
+    public function test_saving_settings_asks_the_frontend_to_drop_the_settings_cache(): void
+    {
+        config([
+            'services.frontend.revalidate_url' => 'http://frontend.test/api/revalidate',
+            'services.frontend.revalidate_secret' => 'test-secret',
+        ]);
+        Http::fake(['http://frontend.test/*' => Http::response(['ok' => true])]);
+
+        app(GeneralSettingService::class)->save(['breadcrumb_color' => '#102030']);
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->url() === 'http://frontend.test/api/revalidate'
+                && ($request->data()['tags'] ?? []) === ['settings'];
+        });
     }
 }

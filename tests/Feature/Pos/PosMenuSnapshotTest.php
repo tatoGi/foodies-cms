@@ -9,6 +9,10 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Services\Pos\PosDeviceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
@@ -195,5 +199,88 @@ class PosMenuSnapshotTest extends TestCase
         $this->postSnapshot($payload)
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['items.0.external_id', 'items.0.price']);
+    }
+
+    public function test_snapshot_uses_the_pos_image_as_the_website_cover(): void
+    {
+        Storage::fake('public');
+        $png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+        $this->postSnapshot($this->snapshot([
+            'image' => ['mime' => 'image/png', 'data' => $png],
+        ]))->assertOk();
+
+        $product = Product::sole();
+        $this->assertSame('pos-menu/42.png', $product->cover_image);
+        Storage::disk('public')->assertExists('pos-menu/42.png');
+
+        $this->postSnapshot($this->snapshot([
+            'image' => ['mime' => 'image/jpeg', 'data' => $png],
+        ]))->assertOk();
+
+        $this->assertSame('pos-menu/42.jpg', $product->fresh()->cover_image);
+        Storage::disk('public')->assertMissing('pos-menu/42.png');
+
+        $product->update(['cover_image' => 'media/custom.jpg']);
+        $this->postSnapshot($this->snapshot([
+            'image' => ['mime' => 'image/jpeg', 'data' => $png],
+        ]))->assertOk();
+        $this->assertSame('pos-menu/42.jpg', $product->fresh()->cover_image);
+
+        $this->postSnapshot($this->snapshot())->assertOk();
+
+        $this->assertNull($product->fresh()->cover_image);
+        Storage::disk('public')->assertMissing('pos-menu/42.jpg');
+    }
+
+    public function test_snapshot_asks_the_frontend_to_drop_menu_cache(): void
+    {
+        config([
+            'services.frontend.revalidate_url' => 'http://frontend.test/api/revalidate',
+            'services.frontend.revalidate_secret' => 'test-secret',
+        ]);
+        Http::fake(['http://frontend.test/*' => Http::response(['ok' => true])]);
+
+        $this->postSnapshot($this->snapshot())->assertOk();
+
+        $slug = Product::sole()->translations()->where('locale', 'ka')->value('slug');
+
+        Http::assertSent(function (Request $request) use ($slug): bool {
+            $tags = $request->data()['tags'] ?? [];
+
+            return $request->url() === 'http://frontend.test/api/revalidate'
+                && $request->hasHeader('X-Revalidate-Secret', 'test-secret')
+                && in_array('menu', $tags, true)
+                && in_array('status', $tags, true)
+                && in_array('product:'.$slug, $tags, true);
+        });
+    }
+
+    public function test_snapshot_still_saves_when_the_frontend_is_down(): void
+    {
+        config([
+            'services.frontend.revalidate_url' => 'http://frontend.test/api/revalidate',
+            'services.frontend.revalidate_secret' => 'test-secret',
+        ]);
+        Http::fake(function (): void {
+            throw new ConnectionException('connection refused');
+        });
+
+        $this->postSnapshot($this->snapshot())->assertOk();
+
+        $this->assertSame(1, Product::count());
+    }
+
+    public function test_snapshot_does_not_call_the_frontend_when_revalidate_is_not_configured(): void
+    {
+        config([
+            'services.frontend.revalidate_url' => null,
+            'services.frontend.revalidate_secret' => null,
+        ]);
+        Http::fake();
+
+        $this->postSnapshot($this->snapshot())->assertOk();
+
+        Http::assertNothingSent();
     }
 }

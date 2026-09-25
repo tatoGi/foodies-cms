@@ -6,12 +6,14 @@ namespace App\Services;
 
 use App\Models\GeneralSetting;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
+use App\Services\Website\RevalidateFrontendService;
 use Illuminate\Support\Facades\Storage;
 
 class GeneralSettingService
 {
     public function __construct(
         private readonly LanguageRepositoryInterface $languageRepository,
+        private readonly RevalidateFrontendService $frontend,
     ) {}
 
     /**
@@ -77,6 +79,8 @@ class GeneralSettingService
                 ->all();
             $this->upsert($key, $value, 'contact', $label);
         }
+
+        $this->frontend->revalidate(['settings']);
     }
 
     public function getFrontendSettings(?string $locale = null, ?string $defaultLocale = null): array

@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductAddon;
 use App\Models\ProductCategory;
 use App\Models\ProductCategoryTranslation;
+use App\Models\ProductContentBlock;
 use App\Models\ProductIngredient;
 use App\Models\ProductTranslation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -108,5 +109,71 @@ class WebsiteMenuApiTest extends TestCase
         ]);
 
         $this->getJson('/api/web/status')->assertJsonPath('pos_online', true);
+    }
+
+    public function test_product_detail_includes_seo_blocks_and_availability(): void
+    {
+        $this->createLanguage('ka');
+
+        $category = ProductCategory::query()->create([
+            'external_source' => 'pos',
+            'external_id' => 3,
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+        ProductCategoryTranslation::query()->create([
+            'product_category_id' => $category->id,
+            'locale' => 'ka',
+            'name' => 'შაურმა',
+            'slug' => 'shawarma',
+        ]);
+
+        $product = Product::query()->create([
+            'external_source' => 'pos',
+            'external_id' => 42,
+            'product_category_id' => $category->id,
+            'sku' => 'pos-42',
+            'price' => 12,
+            'cover_image' => 'pos-menu/42.jpg',
+            'is_active' => true,
+            'is_available' => false,
+            'published' => true,
+            'sort_order' => 1,
+            'block_types' => [],
+        ]);
+        $translation = ProductTranslation::query()->create([
+            'product_id' => $product->id,
+            'locale' => 'ka',
+            'title' => 'შაურმა დიდი',
+            'slug' => 'shawarma-large',
+            'excerpt' => 'ცხელი',
+            'content' => 'გრძელი აღწერა',
+            'meta_title' => 'შაურმა SEO',
+            'meta_description' => 'აღწერა SEO',
+        ]);
+        ProductContentBlock::query()->create([
+            'translation_id' => $translation->id,
+            'type' => 'story',
+            'data' => ['text' => 'სახლში მომზადებული'],
+            'sort_order' => 1,
+        ]);
+        ProductIngredient::query()->create([
+            'product_id' => $product->id,
+            'external_id' => 7,
+            'name' => ['ka' => 'ხახვი'],
+            'is_removable' => true,
+        ]);
+
+        $this->getJson('/api/web/products/shawarma-large?locale=ka')
+            ->assertOk()
+            ->assertJsonPath('product.title', 'შაურმა დიდი')
+            ->assertJsonPath('product.category', 'შაურმა')
+            ->assertJsonPath('product.is_available', false)
+            ->assertJsonPath('product.content', 'გრძელი აღწერა')
+            ->assertJsonPath('product.ingredients.0.name', 'ხახვი')
+            ->assertJsonPath('product.blocks.0.type', 'story')
+            ->assertJsonPath('product.blocks.0.data.text', 'სახლში მომზადებული')
+            ->assertJsonPath('seo.meta_title', 'შაურმა SEO')
+            ->assertJsonPath('seo.meta_description', 'აღწერა SEO');
     }
 }

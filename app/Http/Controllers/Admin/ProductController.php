@@ -27,7 +27,12 @@ class ProductController extends Controller
 
     public function index(Request $request): View
     {
-        return view('admin.products.index', $this->productService->buildIndexViewData($request->query('q', '')));
+        $category = $request->query('category');
+
+        return view('admin.products.index', $this->productService->buildIndexViewData(
+            (string) $request->query('q', ''),
+            is_string($category) ? $category : '',
+        ));
     }
 
     public function create(): View
@@ -89,7 +94,7 @@ class ProductController extends Controller
             return response()->json(['success' => false, 'message' => 'No IDs provided.'], 422);
         }
 
-        $page    = max(1, (int) $request->input('page', 1));
+        $page = max(1, (int) $request->input('page', 1));
         $perPage = max(1, (int) $request->input('per_page', 15));
 
         $this->productService->reorder($orderedIds, $page, $perPage);

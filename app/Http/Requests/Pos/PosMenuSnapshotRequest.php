@@ -47,6 +47,9 @@ class PosMenuSnapshotRequest extends FormRequest
             'items.*.addons.*.external_id' => ['required', 'integer'],
             'items.*.addons.*.name' => ['required', 'array', 'min:1'],
             'items.*.addons.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.image' => ['sometimes', 'nullable', 'array'],
+            'items.*.image.mime' => ['required_with:items.*.image.data', 'string', 'in:image/jpeg,image/png,image/webp,image/gif'],
+            'items.*.image.data' => ['required_with:items.*.image.mime', 'string', 'max:7000000'],
         ];
     }
 }

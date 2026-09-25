@@ -80,57 +80,45 @@
                             </div>
                             <div class="panel-body">
                                 <div class="row g-3">
-                                    <div class="col-md-6 col-xl-3">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('SKU') }} <span class="text-danger">*</span></label>
-                                        <input type="text" name="sku" class="form-control @error('sku') is-invalid @enderror" value="{{ old('sku', $product->sku) }}" placeholder="PROD-001" @readonly($product->isSyncedFromPos())>
+                                        <input type="text" name="sku" class="form-control @error('sku') is-invalid @enderror" value="{{ old('sku', $product->sku) }}" @readonly($product->isSyncedFromPos())>
                                         @error('sku')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                     </div>
-                                    <div class="col-md-6 col-xl-3">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Brand') }}</label>
-                                        <input type="text" name="brand" class="form-control @error('brand') is-invalid @enderror" value="{{ old('brand', $product->brand) }}" placeholder="e.g. NewHome">
-                                        @error('brand')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    </div>
-                                    <div class="col-md-6 col-xl-3">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Price') }} (GEL) <span class="text-danger">*</span></label>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Price') }} (₾) <span class="text-danger">*</span></label>
                                         <input type="number" name="price" step="0.01" min="0" class="form-control @error('price') is-invalid @enderror" value="{{ old('price', $product->price) }}" @readonly($product->isSyncedFromPos())>
                                         @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                     </div>
-                                    <div class="col-md-6 col-xl-3">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Sale Price') }} (GEL)</label>
-                                        <input type="number" name="sale_price" id="sale_price_input" step="0.01" min="0" class="form-control @error('sale_price') is-invalid @enderror" value="{{ old('sale_price', $product->sale_price) }}" @disabled(!old('on_sale', $product->on_sale))>
-                                        @error('sale_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    </div>
-                                    <div class="col-md-6 col-xl-3">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Stock') }}</label>
-                                        <input type="number" name="stock" min="0" class="form-control @error('stock') is-invalid @enderror" value="{{ old('stock', $product->stock) }}">
-                                        @error('stock')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    </div>
-                                    <div class="col-md-6 col-xl-6">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Dimensions') }}</label>
-                                        <input type="text" name="spec_dimensions" class="form-control @error('spec_dimensions') is-invalid @enderror" value="{{ old('spec_dimensions', $manualSpecDefaults['dimensions'] ?? '') }}" placeholder="40*60; 45*40; 40*31">
-                                        @error('spec_dimensions')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    </div>
-                                    <div class="col-md-6 col-xl-6">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Height') }}</label>
-                                        <input type="text" name="spec_height" class="form-control @error('spec_height') is-invalid @enderror" value="{{ old('spec_height', $manualSpecDefaults['height'] ?? '') }}" placeholder="52 სმ ; 48 სმ ; 43 სმ">
-                                        @error('spec_height')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    </div>
-                                    <div class="col-md-6 col-xl-6">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Material') }}</label>
-                                        <input type="text" name="spec_material" class="form-control @error('spec_material') is-invalid @enderror" value="{{ old('spec_material', $manualSpecDefaults['material'] ?? '') }}" placeholder="ხე">
-                                        @error('spec_material')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    </div>
-                                    <div class="col-md-6 col-xl-6">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Colors (text)') }}</label>
-                                        <input type="text" name="spec_colors" class="form-control @error('spec_colors') is-invalid @enderror" value="{{ old('spec_colors', $manualSpecDefaults['colors'] ?? '') }}" placeholder="თეთრი, ყავისფერი">
-                                        @error('spec_colors')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Category') }}</label>
+                                        @if($product->isSyncedFromPos())
+                                            @php
+                                                $posCategory = $product->productCategory?->translations->firstWhere('locale', app()->getLocale())
+                                                    ?? $product->productCategory?->translations->firstWhere('locale', 'ka')
+                                                    ?? $product->productCategory?->translations->first();
+                                            @endphp
+                                            <input type="text" class="form-control" value="{{ $posCategory?->name ?? '—' }}" readonly>
+                                        @else
+                                            <select name="product_category_id" class="form-select @error('product_category_id') is-invalid @enderror">
+                                                <option value="">—</option>
+                                                @foreach($productCategories as $categoryOption)
+                                                    <option value="{{ $categoryOption['id'] }}" @selected((string) old('product_category_id', $product->product_category_id) === (string) $categoryOption['id'])>{{ $categoryOption['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('product_category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                        @endif
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Cover Image') }}</label>
-                                        <input type="text" name="cover_image" id="cover_image_input" class="form-control mb-2 @error('cover_image') is-invalid @enderror" value="{{ old('cover_image', $product->cover_image) }}" placeholder="{{ __('Stored path') }}">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm open-media-picker" data-picker-mode="image" data-target-input="cover_image_input">
-                                            <i class="bi bi-image me-1"></i>{{ __('Choose from Media') }}
-                                        </button>
+                                        @unless($product->isSyncedFromPos())
+                                            <input type="text" name="cover_image" id="cover_image_input" class="form-control mb-2 @error('cover_image') is-invalid @enderror" value="{{ old('cover_image', $product->cover_image) }}" placeholder="{{ __('Stored path') }}">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm open-media-picker" data-picker-mode="image" data-target-input="cover_image_input">
+                                                <i class="bi bi-image me-1"></i>{{ __('Choose from Media') }}
+                                            </button>
+                                        @else
+                                            <p class="small text-muted mb-2">სურათი სალაროდან მოდის. საიტზეც ეს ჩანს.</p>
+                                        @endunless
                                         @if($product->cover_image)
                                             @php
                                                 $coverImageUrl = \Illuminate\Support\Str::startsWith($product->cover_image, ['http://', 'https://', '/'])
@@ -143,37 +131,11 @@
                                         @endif
                                         @error('cover_image')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small text-muted uppercase letter-spacing-1">{{ __('Colors') }}</label>
-                                        <div id="colors-container" class="mb-2">
-                                            @forelse(old('colors', $product->colors ?? []) as $color)
-                                                <div class="d-flex gap-2 align-items-center mb-2">
-                                                    <input type="color" name="colors[]" class="form-control form-control-sm" style="width: 50px; height: 40px;" value="{{ $color }}">
-                                                    <button type="button" class="btn btn-sm btn-danger remove-color-btn">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </div>
-                                            @empty
-                                            @endforelse
-                                        </div>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-color-btn">
-                                            <i class="bi bi-plus-lg me-1"></i>{{ __('Add Color') }}
-                                        </button>
-                                        @error('colors')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                    </div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-3 mt-3">
                                     <div class="form-check form-switch p-0 ps-5 mb-0">
-                                        <input class="form-check-input ms-n5" type="checkbox" id="on_sale" name="on_sale" value="1" @checked(old('on_sale', $product->on_sale)) onchange="document.getElementById('sale_price_input').disabled=!this.checked">
-                                        <label class="form-check-label fw-bold" for="on_sale">{{ __('On Sale') }}</label>
-                                    </div>
-                                    <div class="form-check form-switch p-0 ps-5 mb-0">
                                         <input class="form-check-input ms-n5" type="checkbox" id="is_featured" name="is_featured" value="1" @checked(old('is_featured', $product->is_featured))>
                                         <label class="form-check-label fw-bold" for="is_featured">{{ __('Featured') }}</label>
-                                    </div>
-                                    <div class="form-check form-switch p-0 ps-5 mb-0">
-                                        <input class="form-check-input ms-n5" type="checkbox" id="show_in_reels" name="show_in_reels" value="1" @checked(old('show_in_reels', $product->show_in_reels))>
-                                        <label class="form-check-label fw-bold" for="show_in_reels">{{ __('Show in Reels') }}</label>
                                     </div>
                                     <div class="form-check form-switch p-0 ps-5 mb-0">
                                         <input class="form-check-input ms-n5" type="checkbox" id="is_active" name="is_active" value="1" @checked(old('is_active', $product->is_active)) @disabled($product->isSyncedFromPos())>
@@ -184,8 +146,57 @@
                                         <label class="form-check-label fw-bold" for="published">{{ __('Published') }}</label>
                                     </div>
                                 </div>
+                                @if($product->isSyncedFromPos())
+                                    <div class="d-flex flex-wrap gap-2 mt-3">
+                                        <span class="badge {{ $product->is_available ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                            {{ $product->is_available ? 'ხელმისაწვდომია' : 'ამოიწურა' }}
+                                        </span>
+                                        @if($product->show_on_menu_board)
+                                            <span class="badge text-bg-dark">სლაიდერზე</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
+                        @if($product->ingredients->isNotEmpty() || $product->addons->isNotEmpty())
+                            <div class="dashboard-panel premium-shadow mb-4">
+                                <div class="panel-header border-bottom-0">
+                                    <div class="panel-header-title">
+                                        <i class="bi bi-list-ul me-2 text-primary"></i>
+                                        <span>ინგრედიენტები და დანამატები</span>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    <p class="small text-muted">ეს სია სალაროდან მოდის და აქ არ იცვლება.</p>
+                                    @if($product->ingredients->isNotEmpty())
+                                        <div class="mb-3">
+                                            <div class="fw-semibold mb-2">ინგრედიენტები</div>
+                                            <ul class="mb-0">
+                                                @foreach($product->ingredients as $ingredient)
+                                                    @php
+                                                        $ingredientName = $ingredient->name[app()->getLocale()] ?? $ingredient->name['ka'] ?? $ingredient->name['en'] ?? '';
+                                                    @endphp
+                                                    <li>{{ $ingredientName }}@if($ingredient->is_removable) <span class="text-muted small">· მოსაცილებელი</span>@endif</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                    @if($product->addons->isNotEmpty())
+                                        <div>
+                                            <div class="fw-semibold mb-2">დანამატები</div>
+                                            <ul class="mb-0">
+                                                @foreach($product->addons as $addon)
+                                                    @php
+                                                        $addonName = $addon->name[app()->getLocale()] ?? $addon->name['ka'] ?? $addon->name['en'] ?? '';
+                                                    @endphp
+                                                    <li>{{ $addonName }} — ₾{{ number_format((float) $addon->price, 2) }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                         <div class="tab-content tab-content-premium" id="langTabsContent">
                             @foreach($locales as $locale)
                                 @php $isSelected = in_array($locale['code'], $selectedLocaleCodes, true); @endphp
@@ -224,19 +235,18 @@
                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-muted uppercase letter-spacing-1">
-                                                {{ __('Category') }} ({{ strtoupper($locale['code']) }})
-                                            </label>
-                                            <input type="text"
-                                                   name="categories[{{ $locale['code'] }}]"
-                                                   class="form-control @error('categories.'.$locale['code']) is-invalid @enderror"
-                                                   {{ $isSelected ? '' : 'disabled' }}
-                                                   value="{{ old('categories.'.$locale['code'], $translations[$locale['code']]->category ?? '') }}">
-                                            @error('categories.'.$locale['code'])
-                                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                                            @enderror
-                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-bold text-muted uppercase letter-spacing-1">
+                                            მოკლე აღწერა ({{ strtoupper($locale['code']) }})
+                                        </label>
+                                        <textarea name="excerpts[{{ $locale['code'] }}]"
+                                                  class="form-control @error('excerpts.'.$locale['code']) is-invalid @enderror"
+                                                  rows="3" {{ $isSelected ? '' : 'disabled' }}>{{ old('excerpts.'.$locale['code'], $translations[$locale['code']]->excerpt ?? '') }}</textarea>
+                                        @error('excerpts.'.$locale['code'])
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
                                     </div>
 
                                     <div class="mb-4">
@@ -751,41 +761,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Color Picker Functionality
-    const addColorBtn = document.getElementById('add-color-btn');
-    const colorsContainer = document.getElementById('colors-container');
-
-    function addColorInput() {
-        const colorDiv = document.createElement('div');
-        colorDiv.className = 'd-flex gap-2 align-items-center mb-2';
-        colorDiv.innerHTML = `
-            <input type="color" name="colors[]" class="form-control form-control-sm" style="width: 50px; height: 40px;" value="#000000">
-            <button type="button" class="btn btn-sm btn-danger remove-color-btn">
-                <i class="bi bi-trash"></i>
-            </button>
-        `;
-        colorsContainer.appendChild(colorDiv);
-    }
-
-    function setupColorRemoveButtons() {
-        document.querySelectorAll('.remove-color-btn').forEach(btn => {
-            btn.removeEventListener('click', removeColorHandler);
-            btn.addEventListener('click', removeColorHandler);
-        });
-    }
-
-    function removeColorHandler(e) {
-        e.preventDefault();
-        e.target.closest('div').remove();
-    }
-
-    addColorBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        addColorInput();
-        setupColorRemoveButtons();
-    });
-
-    setupColorRemoveButtons();
 });
 </script>
 @include('admin.partials.ai-content-tools-script')
