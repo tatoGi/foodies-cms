@@ -1,0 +1,246 @@
+{
+  "about": {
+    "template": "about",
+    "slugs": {
+      "ka": "about",
+      "en": "about-us"
+    },
+    "titles": {
+      "ka": "ჩვენს შესახებ",
+      "en": "About us"
+    },
+    "blocks": [
+      {
+        "type": "about_why_choose_us",
+        "data": {
+          "ka": {
+            "sub_title": "საუკეთესო კერძების მენიუ",
+            "title": "ჩვენ ვამზადებთ",
+            "title_line2": "საუკეთესო ბურგერს თქვენთვის",
+            "description": "ჩვენ ვანიჭებთ პრიორიტეტს ეკოლოგიურად სუფთა მეთოდებს, რომლებიც იცავენ ბუნებრივ რესურსებს და უზრუნველყოფენ სოფლის მეურნეობის გრძელვადიან პროდუქტიულობას მომავალი თაობებისთვის. ჩვენი ყოველი გადაწყვეტილება შექმნილია ფერმერების მხარდასაჭერად.",
+            "list_one": [
+              {
+                "text": "ბუნებრივი ჯანსაღი პროდუქტები"
+              },
+              {
+                "text": "დელიკატესური სოკოები"
+              },
+              {
+                "text": "აგრო მეურნეობა"
+              }
+            ],
+            "list_two": [
+              {
+                "text": "სასუქების დისტრიბუცია"
+              },
+              {
+                "text": "საუკეთესო ხარისხის სტანდარტები"
+              },
+              {
+                "text": "მრავალფუნქციური მეურნეობა"
+              }
+            ],
+            "image": "demo/about/burger-1.png",
+            "primary_button_text": "შეუკვეთე ახლავე",
+            "primary_button_link": "/contact",
+            "secondary_button_text": "მაგიდის დაჯავშნა",
+            "secondary_button_link": "/contact"
+          },
+          "en": {
+            "sub_title": "Best Food Menu",
+            "title": "We're Making the",
+            "title_line2": "Best burger for You",
+            "description": "We prioritize eco-friendly practices that protect natural resources and ensure long-term agricultural productivity for generations. Every solution we offer is designed to support farmers.",
+            "list_one": [
+              {
+                "text": "Natural Healthy Products"
+              },
+              {
+                "text": "Gourmet Mushrooms"
+              },
+              {
+                "text": "Argo Farming"
+              }
+            ],
+            "list_two": [
+              {
+                "text": "Fertilizer Distribution"
+              },
+              {
+                "text": "Best Quality Standards"
+              },
+              {
+                "text": "Multifunctional Farming"
+              }
+            ],
+            "image": "demo/about/burger-1.png",
+            "primary_button_text": "Order Now",
+            "primary_button_link": "/contact",
+            "secondary_button_text": "Reserve Table",
+            "secondary_button_link": "/contact"
+          }
+        }
+      },
+      {
+        "type": "about_discount_food",
+        "data": {
+          "ka": {
+            "banner1_label": "*** მხოლოდ შეზღუდული დროით ***",
+            "banner1_title": "50%-იანი ფასდაკლება",
+            "banner1_image": "demo/about/food-banner-1.jpg",
+            "banner2_label": "დღეს",
+            "banner2_title": "სპეციალური",
+            "banner2_accent": "კერძების მენიუ",
+            "banner2_text": "მხოლოდ ამ შაბათ-კვირას",
+            "banner2_price_label": "მხოლოდ",
+            "banner2_price": "$19",
+            "banner2_image": "demo/about/food-menu2.png",
+            "banner2_background": "demo/about/food-banner-2.jpg",
+            "banner3_title": "გემრიელი\nცხელი\nპიცა",
+            "banner3_image": "demo/about/food-banner-3.jpg",
+            "banner4_label": "სპეციალური მენიუ",
+            "banner4_title": "ყველიანი პიცა",
+            "banner4_subtitle": "შეფის სპეციალური შეთავაზება",
+            "banner4_image": "demo/about/pizza-discount.png",
+            "banner4_background": "demo/about/food-banner-4.jpg",
+            "button_text": "შეუკვეთე ახლავე",
+            "button_link": "/menu"
+          },
+          "en": {
+            "banner1_label": "*** FOR LIMITED TIME ONLY ***",
+            "banner1_title": "50% Offer",
+            "banner1_image": "demo/about/food-banner-1.jpg",
+            "banner2_label": "Today's",
+            "banner2_title": "Special",
+            "banner2_accent": "Food Menu",
+            "banner2_text": "This Weekend Only",
+            "banner2_price_label": "ONLY",
+            "banner2_price": "$19",
+            "banner2_image": "demo/about/food-menu2.png",
+            "banner2_background": "demo/about/food-banner-2.jpg",
+            "banner3_title": "Yummy\nDelicious Hot\nPizza",
+            "banner3_image": "demo/about/food-banner-3.jpg",
+            "banner4_label": "Special Menu",
+            "banner4_title": "Chessey Pizza",
+            "banner4_subtitle": "CHEF SPECIAL",
+            "banner4_image": "demo/about/pizza-discount.png",
+            "banner4_background": "demo/about/food-banner-4.jpg",
+            "button_text": "Order Now",
+            "button_link": "/menu"
+          }
+        }
+      },
+      {
+        "type": "about_food_menu",
+        "data": {
+          "ka": {
+            "sub_title": "საუკეთესო კერძების მენიუ",
+            "title": "ჩვენი საუკეთესო კერძები",
+            "left_image": "demo/about/food-menu.jpg",
+            "right_image": "demo/about/food-menu-2.jpg",
+            "button_text": "მაგიდის დაჯავშნა",
+            "button_link": "/menu"
+          },
+          "en": {
+            "sub_title": "Best Food Menu",
+            "title": "Our Best Foods Menus",
+            "left_image": "demo/about/food-menu.jpg",
+            "right_image": "demo/about/food-menu-2.jpg",
+            "button_text": "Reserve Table",
+            "button_link": "/menu"
+          }
+        }
+      },
+      {
+        "type": "about_gallery",
+        "data": {
+          "ka": {
+            "sub_title": "ჩვენი კერძების გალერეა",
+            "title": "გაეცანით ჩვენს ფასთ-ფუდ კატეგორიას",
+            "images": [
+              "demo/about/gallery-1.jpg",
+              "demo/about/gallery-2.jpg",
+              "demo/about/gallery-3.jpg"
+            ],
+            "button_text": "იხილეთ ჩვენი გალერეა",
+            "button_link": "/gallery"
+          },
+          "en": {
+            "sub_title": "Our Food Gallery",
+            "title": "Let's See our Fast Food Category",
+            "images": [
+              "demo/about/gallery-1.jpg",
+              "demo/about/gallery-2.jpg",
+              "demo/about/gallery-3.jpg"
+            ],
+            "button_text": "View Our Gallery",
+            "button_link": "/gallery"
+          }
+        }
+      },
+      {
+        "type": "best_delivery",
+        "data": {
+          "ka": {
+            "sub_title": "საუკეთესო მიწოდება",
+            "title": "აირჩიეთ სასურველი და მიღების დრო",
+            "description": "ჩვენ ყოველდღე დაკავებულები ვართ, ამიტომ გირჩევთ დაგვირეკოთ მისვლამდე, რომ თქვენი ადგილი გარანტირებული გვქონდეს.",
+            "points_sub_title": "დააგროვეთ ქულები",
+            "points_title": "დააგროვეთ ქულები ყოველი ონლაინ შეკვეთისას",
+            "info_text": "ჩვენი ფერმის პროდუქტებით სარგებლობენ მომხმარებლები მთელი მსოფლიოდან.",
+            "image": "demo/about/delivery-image.png",
+            "button_text": "შეუკვეთე ახლავე",
+            "button_link": "/menu"
+          },
+          "en": {
+            "sub_title": "Best Delivery",
+            "title": "Choose what you want, select a pick up time",
+            "description": "We're very busy every day, so we recommend calling ahead before you arrive so we can guarantee your seat.",
+            "points_sub_title": "Earn The Points",
+            "points_title": "Earn points every time you order online",
+            "info_text": "We have global customers for our farm-grown products.",
+            "image": "demo/about/delivery-image.png",
+            "button_text": "Order Now",
+            "button_link": "/menu"
+          }
+        }
+      },
+      {
+        "type": "about_discount_banner",
+        "data": {
+          "ka": {
+            "title": "გემრიელი",
+            "description": "ჩვენი კულინარიული სამყარო, სადაც ყოველი კერძი ამბავს გვიყვება და ყოველი ლუკმა თავგადასავალია.",
+            "discount_text": "50%-იანი ფასდაკლება",
+            "right_title": "პიცა",
+            "background_image": "demo/about/banner-bg.jpg",
+            "button_text": "იხილეთ შეთავაზებები",
+            "button_link": "/menu"
+          },
+          "en": {
+            "title": "Delicious",
+            "description": "Our culinary sanctuary, where every dish tells a story every bite is an adventure.",
+            "discount_text": "50% Discount Offer",
+            "right_title": "Pizza",
+            "background_image": "demo/about/banner-bg.jpg",
+            "button_text": "Browse Offers",
+            "button_link": "/menu"
+          }
+        }
+      },
+      {
+        "type": "about_news",
+        "data": {
+          "ka": {
+            "sub_title": "ჩვენი ბლოგი და სიახლეები",
+            "title": "უახლესი სიახლეები და სტატიები"
+          },
+          "en": {
+            "sub_title": "Our Blog & News",
+            "title": "Latest Our Insights & News"
+          }
+        }
+      }
+    ]
+  }
+}
