@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Seeders;
 
 use App\Models\BlockTypeDefinition;
+use App\Models\Page;
 use App\Models\PageTemplate;
+use App\Models\PageTranslation;
+use Database\Seeders\SiteDemoSeeder;
 use Database\Seeders\SitePageTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SiteDemoSeederTest extends TestCase
@@ -33,5 +37,61 @@ class SiteDemoSeederTest extends TestCase
 
         $template = PageTemplate::query()->where('slug', 'about')->sole();
         $this->assertSame('ჩვენ შესახებ', $template->translations()->where('locale', 'ka')->value('name'));
+    }
+
+    public function test_demo_seeder_creates_the_about_page_with_blocks_and_images(): void
+    {
+        Storage::fake('public');
+        $this->createLanguage('ka');
+        $this->createLanguage('en', false);
+
+        $this->seed(SiteDemoSeeder::class);
+
+        $page = Page::query()->where('template', 'about')->sole();
+        $this->assertTrue($page->published);
+        $this->assertSame(SitePageTemplateSeeder::ABOUT_BLOCKS, $page->block_types);
+
+        $ka = $page->translations()->where('locale', 'ka')->sole();
+        $en = $page->translations()->where('locale', 'en')->sole();
+        $this->assertSame('about', $ka->slug);
+        $this->assertSame('about-us', $en->slug);
+        $this->assertSame(SitePageTemplateSeeder::ABOUT_BLOCKS, $ka->blocks()->orderBy('sort_order')->pluck('type')->all());
+
+        $why = $en->blocks()->where('type', 'about_why_choose_us')->sole()->data;
+        $this->assertNotSame('', $why['title']);
+        $this->assertNotEmpty($why['list_one'][0]['text']);
+        Storage::disk('public')->assertExists($why['image']);
+
+        $gallery = $ka->blocks()->where('type', 'about_gallery')->sole()->data;
+        $this->assertCount(3, $gallery['images']);
+    }
+
+    public function test_page_api_returns_about_blocks_in_order_for_both_locales(): void
+    {
+        Storage::fake('public');
+        $this->createLanguage('ka');
+        $this->createLanguage('en', false);
+        $this->seed(SiteDemoSeeder::class);
+
+        $response = $this->getJson('/api/web/pages/about?locale=en')->assertOk();
+
+        $this->assertSame('about', $response->json('page.template'));
+        $this->assertSame(SitePageTemplateSeeder::ABOUT_BLOCKS, array_column($response->json('page.blocks'), 'type'));
+        $this->assertIsArray($response->json('page.blocks.0.data.list_one'));
+        $this->assertCount(3, $response->json('page.blocks.3.data.images'));
+    }
+
+    public function test_demo_seeder_does_not_overwrite_an_edited_page(): void
+    {
+        Storage::fake('public');
+        $this->createLanguage('ka');
+        $this->createLanguage('en', false);
+        $this->seed(SiteDemoSeeder::class);
+        PageTranslation::query()->where('slug', 'about')->update(['title' => 'ადმინის სათაური']);
+
+        $this->seed(SiteDemoSeeder::class);
+
+        $this->assertSame(1, Page::query()->where('template', 'about')->count());
+        $this->assertSame('ადმინის სათაური', PageTranslation::query()->where('slug', 'about')->value('title'));
     }
 }
