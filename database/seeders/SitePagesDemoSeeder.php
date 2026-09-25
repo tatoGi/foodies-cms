@@ -21,7 +21,7 @@ class SitePagesDemoSeeder extends Seeder
     {
         $this->copyDemoImages();
 
-        /** @var array<string, array{template: string, slugs: array<string, string>, titles: array<string, string>, blocks: list<array{type: string, data: array<string, array<string, mixed>>}>}> $pages */
+        /** @var array<string, array{template: string, slugs: array<string, string>, titles: array<string, string>, block_types?: list<string>, blocks: list<array{type: string, data: array<string, array<string, mixed>>}>}> $pages */
         $pages = json_decode(File::get(database_path('seeders/data/site-pages.json')), true, flags: JSON_THROW_ON_ERROR);
 
         foreach ($pages as $definition) {
@@ -32,7 +32,7 @@ class SitePagesDemoSeeder extends Seeder
             DB::transaction(function () use ($definition): void {
                 $page = Page::query()->create([
                     'template' => $definition['template'],
-                    'block_types' => array_column($definition['blocks'], 'type'),
+                    'block_types' => $definition['block_types'] ?? array_column($definition['blocks'], 'type'),
                     'published' => true,
                     'show_in_menu' => false,
                     'is_home' => false,

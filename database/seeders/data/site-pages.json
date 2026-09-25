@@ -242,5 +242,524 @@
         }
       }
     ]
+  },
+  "contact": {
+    "template": "contact",
+    "slugs": {
+      "ka": "contact",
+      "en": "contact-us"
+    },
+    "titles": {
+      "ka": "დაგვიკავშირდით",
+      "en": "Contact Us"
+    },
+    "blocks": [
+      {
+        "type": "contact_locations",
+        "data": {
+          "ka": {
+            "locations": [
+              {
+                "icon": "demo/contact/contact-flag-1.png",
+                "title": "თბილისი, საქართველო",
+                "find_us_label": "გვიპოვეთ:",
+                "address": "ჭყონდიდელი #56, თბილისი, საქართველო",
+                "mail_us_label": "მოგვწერეთ:",
+                "email": "homespaceinfo1@gmail.com",
+                "call_us_label": "დაგვირეკეთ:",
+                "phone": "577 42 29 42"
+              }
+            ]
+          },
+          "en": {
+            "locations": [
+              {
+                "icon": "demo/contact/contact-flag-1.png",
+                "title": "Tbilisi, Georgia",
+                "find_us_label": "Find Us:",
+                "address": "56 Chqondideli St, Tbilisi, Georgia",
+                "mail_us_label": "Mail Us:",
+                "email": "homespaceinfo1@gmail.com",
+                "call_us_label": "Call Us:",
+                "phone": "577 42 29 42"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "contact_map",
+        "data": {
+          "ka": {
+            "map_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6678.7619084840835!2d144.9618311901502!3d-37.81450084255415!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642b4758afc1d%3A0x3119cc820fdfc62e!2sEnvato!5e0!3m2!1sen!2sbd!4v1641984054261!5m2!1sen!2sbd",
+            "sub_title": "ჩვენი კონტაქტი",
+            "title": "დაგვიკავშირდით",
+            "description": "დაწყება მარტივია! უბრალოდ დაგვიკავშირდით საკონტაქტო ფორმის საშუალებით ან დაგვირეკეთ და ჩვენ ყველაფერს დავგეგმავთ."
+          },
+          "en": {
+            "map_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6678.7619084840835!2d144.9618311901502!3d-37.81450084255415!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642b4758afc1d%3A0x3119cc820fdfc62e!2sEnvato!5e0!3m2!1sen!2sbd!4v1641984054261!5m2!1sen!2sbd",
+            "sub_title": "Our Contact",
+            "title": "Contac With Us",
+            "description": "Getting started is easy! Simply reach out to us through our contact form or give us a call, and we’ll schedule."
+          }
+        }
+      }
+    ]
+  },
+  "faq": {
+    "template": "faq",
+    "slugs": {
+      "ka": "faq",
+      "en": "faqs"
+    },
+    "titles": {
+      "ka": "ჩვენი კითხვები",
+      "en": "Our FAQ's"
+    },
+    "blocks": [
+      {
+        "type": "faq_accordion",
+        "data": {
+          "ka": {
+            "sub_title": "ჩვენი კითხვები",
+            "title": "ხშირად დასმული კითხვები",
+            "items": [
+              {
+                "question": "როგორ მუშაობს ეს?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "შემიძლია ერთდროულად შევუკვეთო სხვადასხვა რესტორნიდან?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "რატომ აკლია ზოგიერთ რესტორნის გვერდს მენიუები?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "შემიძლია ავირჩიო რომელი მიზანი მხარი დავუჭირო?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "საიდან ვიცი, რომ ჩემი შეკვეთა სწორად დამუშავდა?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "რატომ აკლია ზოგიერთ რესტორნის გვერდს მენიუები?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "თქვენი პიცა შეიცავს არაქისს ან არაქისის ზეთს?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "თქვენი მენიუს ფასები იგივეა, რაც რესტორანში?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "შემიძლია ავირჩიო კონკრეტული მიზანი მხარდასაჭერად?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              },
+              {
+                "question": "თქვენი ცომი შესაფერისია ვეგანებისთვის ან ვეგეტარიანელებისთვის?",
+                "answer": "ლორემ იფსუმის მრავალი ვარიაცია არსებობს ხელმისაწვდომი, თუმცა მათი უმეტესობა გარკვეულწილად შეცვლილია იუმორის ჩამატებით ან შემთხვევითი სიტყვებით, რომლებიც სულაც არ გამოიყურება დამაჯერებლად"
+              }
+            ]
+          },
+          "en": {
+            "sub_title": "Our FAQ's",
+            "title": "Frequently Asked Questions",
+            "items": [
+              {
+                "question": "How does this work?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Can I order from different restaurant at the same time?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Some menus are missing on a restaurant page?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Can I choose which cause to support?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "How do I know my order is used properly?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Some menus are missing on a restaurant page?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Does your pizza contain peanuts or peanut oil?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Are your menu prices the same as those at the restaurant?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Can I choose a specific cause to support?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              },
+              {
+                "question": "Are your doughs vegan or vegetarian friendly?",
+                "answer": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "gallery": {
+    "template": "gallery",
+    "slugs": {
+      "ka": "gallery",
+      "en": "our-gallery"
+    },
+    "titles": {
+      "ka": "ჩვენი გალერეა",
+      "en": "Our Gallery"
+    },
+    "blocks": [
+      {
+        "type": "gallery_grid",
+        "data": {
+          "ka": {
+            "images": [
+              "demo/gallery/g-1.jpg",
+              "demo/gallery/g-2.jpg",
+              "demo/gallery/g-3.jpg",
+              "demo/gallery/g-4.jpg",
+              "demo/gallery/g-5.jpg",
+              "demo/gallery/g-6.jpg",
+              "demo/gallery/g-7.jpg",
+              "demo/gallery/g-8.jpg",
+              "demo/gallery/g-9.jpg",
+              "demo/gallery/g-10.jpg",
+              "demo/gallery/g-11.jpg",
+              "demo/gallery/g-12.jpg",
+              "demo/gallery/g-13.jpg",
+              "demo/gallery/g-14.jpg"
+            ]
+          },
+          "en": {
+            "images": [
+              "demo/gallery/g-1.jpg",
+              "demo/gallery/g-2.jpg",
+              "demo/gallery/g-3.jpg",
+              "demo/gallery/g-4.jpg",
+              "demo/gallery/g-5.jpg",
+              "demo/gallery/g-6.jpg",
+              "demo/gallery/g-7.jpg",
+              "demo/gallery/g-8.jpg",
+              "demo/gallery/g-9.jpg",
+              "demo/gallery/g-10.jpg",
+              "demo/gallery/g-11.jpg",
+              "demo/gallery/g-12.jpg",
+              "demo/gallery/g-13.jpg",
+              "demo/gallery/g-14.jpg"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "history": {
+    "template": "history",
+    "slugs": {
+      "ka": "history",
+      "en": "our-history"
+    },
+    "titles": {
+      "ka": "ჩვენი ისტორია",
+      "en": "Our History"
+    },
+    "blocks": [
+      {
+        "type": "history_top",
+        "data": {
+          "ka": {
+            "sub_title": "საუკეთესო კერძების მენიუ",
+            "title": "მაღალი ხარისხის მომსახურება 1960 წლიდან",
+            "description": "დრო სწრაფად გადის, როცა საყვარელ საქმეს აკეთებ. ჩვენ ეს კარგად ვიცით, რადგან 1967 წლიდან ვამზადებთ საუკეთესო პიცას. წლების განმავლობაში 750-ზე მეტ რესტორნამდე გავიზარდეთ ქვეყნის მასშტაბით და გავხდით სანდო ბრენდი და ლიდერი კვების ინდუსტრიაში. ამაყობთ ხარისხიანი საკვებით და იმ განსხვავებით, რასაც ჩვენი საზოგადოებებისთვის ვქმნით. წლების განმავლობაში უამრავი პიცა და მოგონება შეგვიგროვდა. გაარკვიეთ, რა დგას ორივეს უკან!",
+            "image": "demo/history/history-client-01.png",
+            "signature_image": "demo/history/history-client-sing.png"
+          },
+          "en": {
+            "sub_title": "Best Food Menu",
+            "title": "Delivering Awesome Since 1960",
+            "description": "Time flies when you do what you love. We know because we’ve been making great pizza since 1967. Along the way, we’ve grown to more than 750 restaurants from coast to coast, becoming a trusted brand and leader in the foodservice industry. We’re proud of the quality food we make – and the difference we make in communities across Canada. We’ve made a lot of pies and memories over the years. Find out what goes into both!",
+            "image": "demo/history/history-client-01.png",
+            "signature_image": "demo/history/history-client-sing.png"
+          }
+        }
+      },
+      {
+        "type": "history_timeline",
+        "data": {
+          "ka": {
+            "entries": [
+              {
+                "year": "1960",
+                "title": "დასაწყისი",
+                "text": "დრო სწრაფად გადის, როცა საყვარელ საქმეს აკეთებ. ჩვენ ეს კარგად ვიცით, რადგან 1967 წლიდან ვამზადებთ საუკეთესო პიცას. წლების განმავლობაში 750-ზე მეტ რესტორნამდე გავიზარდეთ ქვეყნის მასშტაბით და გავხდით სანდო ბრენდი და ლიდერი კვების ინდუსტრიაში.",
+                "image": "demo/history/history-01.jpg"
+              },
+              {
+                "year": "1980",
+                "title": "ოქროს ხანა!",
+                "text": "დრო სწრაფად გადის, როცა საყვარელ საქმეს აკეთებ. ჩვენ ეს კარგად ვიცით, რადგან 1967 წლიდან ვამზადებთ საუკეთესო პიცას. წლების განმავლობაში 750-ზე მეტ რესტორნამდე გავიზარდეთ ქვეყნის მასშტაბით და გავხდით სანდო ბრენდი და ლიდერი კვების ინდუსტრიაში.",
+                "image": "demo/history/history-02.jpg"
+              },
+              {
+                "year": "2000",
+                "title": "ახალი ერის დაწყება",
+                "text": "დრო სწრაფად გადის, როცა საყვარელ საქმეს აკეთებ. ჩვენ ეს კარგად ვიცით, რადგან 1967 წლიდან ვამზადებთ საუკეთესო პიცას. წლების განმავლობაში 750-ზე მეტ რესტორნამდე გავიზარდეთ ქვეყნის მასშტაბით და გავხდით სანდო ბრენდი და ლიდერი კვების ინდუსტრიაში.",
+                "image": "demo/history/history-03.jpg"
+              },
+              {
+                "year": "2020",
+                "title": "ონლაინ შეკვეთა",
+                "text": "დრო სწრაფად გადის, როცა საყვარელ საქმეს აკეთებ. ჩვენ ეს კარგად ვიცით, რადგან 1967 წლიდან ვამზადებთ საუკეთესო პიცას. წლების განმავლობაში 750-ზე მეტ რესტორნამდე გავიზარდეთ ქვეყნის მასშტაბით და გავხდით სანდო ბრენდი და ლიდერი კვების ინდუსტრიაში.",
+                "image": "demo/history/history-04.jpg"
+              },
+              {
+                "year": "2023",
+                "title": "2,500-ე ფილიალი",
+                "text": "დრო სწრაფად გადის, როცა საყვარელ საქმეს აკეთებ. ჩვენ ეს კარგად ვიცით, რადგან 1967 წლიდან ვამზადებთ საუკეთესო პიცას. წლების განმავლობაში 750-ზე მეტ რესტორნამდე გავიზარდეთ ქვეყნის მასშტაბით და გავხდით სანდო ბრენდი და ლიდერი კვების ინდუსტრიაში.",
+                "image": "demo/history/history-05.jpg"
+              },
+              {
+                "year": "2026",
+                "title": "70 წლის იუბილე",
+                "text": "დრო სწრაფად გადის, როცა საყვარელ საქმეს აკეთებ. ჩვენ ეს კარგად ვიცით, რადგან 1967 წლიდან ვამზადებთ საუკეთესო პიცას. წლების განმავლობაში 750-ზე მეტ რესტორნამდე გავიზარდეთ ქვეყნის მასშტაბით და გავხდით სანდო ბრენდი და ლიდერი კვების ინდუსტრიაში.",
+                "image": "demo/history/history-06.jpg"
+              }
+            ]
+          },
+          "en": {
+            "entries": [
+              {
+                "year": "1960",
+                "title": "The Beginning Time",
+                "text": "Time flies when you do what you love. We know because we’ve been making great pizza since 1967. Along the way, we’ve grown to more than 750 restaurants from coast to coast, becoming a trusted brand and leader in the foodservice industry.",
+                "image": "demo/history/history-01.jpg"
+              },
+              {
+                "year": "1980",
+                "title": "Golden Time!",
+                "text": "Time flies when you do what you love. We know because we’ve been making great pizza since 1967. Along the way, we’ve grown to more than 750 restaurants from coast to coast, becoming a trusted brand and leader in the foodservice industry.",
+                "image": "demo/history/history-02.jpg"
+              },
+              {
+                "year": "2000",
+                "title": "Starting the New Era",
+                "text": "Time flies when you do what you love. We know because we’ve been making great pizza since 1967. Along the way, we’ve grown to more than 750 restaurants from coast to coast, becoming a trusted brand and leader in the foodservice industry.",
+                "image": "demo/history/history-03.jpg"
+              },
+              {
+                "year": "2020",
+                "title": "Online Order",
+                "text": "Time flies when you do what you love. We know because we’ve been making great pizza since 1967. Along the way, we’ve grown to more than 750 restaurants from coast to coast, becoming a trusted brand and leader in the foodservice industry.",
+                "image": "demo/history/history-04.jpg"
+              },
+              {
+                "year": "2023",
+                "title": "2,500th the Branch Store",
+                "text": "Time flies when you do what you love. We know because we’ve been making great pizza since 1967. Along the way, we’ve grown to more than 750 restaurants from coast to coast, becoming a trusted brand and leader in the foodservice industry.",
+                "image": "demo/history/history-05.jpg"
+              },
+              {
+                "year": "2026",
+                "title": "70 Years Celebrating",
+                "text": "Time flies when you do what you love. We know because we’ve been making great pizza since 1967. Along the way, we’ve grown to more than 750 restaurants from coast to coast, becoming a trusted brand and leader in the foodservice industry.",
+                "image": "demo/history/history-06.jpg"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "reservation": {
+    "template": "reservation",
+    "slugs": {
+      "ka": "reservation",
+      "en": "book-a-table"
+    },
+    "titles": {
+      "ka": "რეზერვაცია",
+      "en": "Reservation"
+    },
+    "blocks": [
+      {
+        "type": "reservation_feature",
+        "data": {
+          "ka": {
+            "items": [
+              {
+                "icon": "demo/reservation/icon-1.svg",
+                "title": "გემრიელი და ცხარე",
+                "description": "მომზადებულია საუკეთესო ინგრედიენტებით, უნიკალური და დაუვიწყარი გემოთი."
+              },
+              {
+                "icon": "demo/reservation/icon-2.svg",
+                "title": "ხარისხიანი საკვები",
+                "description": "ჩვენთან იპოვით ყველაზე ახალ და მაღალი ხარისხის ინგრედიენტებს, საგულდაგულოდ შერჩეულს თქვენთვის."
+              },
+              {
+                "icon": "demo/reservation/icon-3.svg",
+                "title": "ორიგინალური რეცეპტები",
+                "description": "ყოველი კერძი მზადდება ჩვენი საკუთარი, გამორჩეული რეცეპტებით."
+              },
+              {
+                "icon": "demo/reservation/icon-4.svg",
+                "title": "სწრაფი მიტანა",
+                "description": "მიიღეთ თქვენი შეკვეთა სწრაფად სანდო კურიერების მეშვეობით და თვალი ადევნეთ მიტანას რეალურ დროში."
+              }
+            ],
+            "button_text": "შეუკვეთე ახლავე",
+            "button_link": "/contact"
+          },
+          "en": {
+            "items": [
+              {
+                "icon": "demo/reservation/icon-1.svg",
+                "title": "TESTY & SPICY",
+                "description": "Temperate ocean-bass sea chub unicorn treefish eulachon tidewater goby."
+              },
+              {
+                "icon": "demo/reservation/icon-2.svg",
+                "title": "QUALITY FOODS",
+                "description": "Temperate ocean-bass sea chub unicorn treefish eulachon tidewater goby."
+              },
+              {
+                "icon": "demo/reservation/icon-3.svg",
+                "title": "ORIGINAL RECIPES",
+                "description": "Temperate ocean-bass sea chub unicorn treefish eulachon tidewater goby."
+              },
+              {
+                "icon": "demo/reservation/icon-4.svg",
+                "title": "FAST DELIVERY",
+                "description": "Temperate ocean-bass sea chub unicorn treefish eulachon tidewater goby."
+              }
+            ],
+            "button_text": "Order Now",
+            "button_link": "/contact"
+          }
+        }
+      },
+      {
+        "type": "reservation_combo_offer",
+        "data": {
+          "ka": {
+            "sub_title": "სპეციალური კომბო შეთავაზება",
+            "title": "გაქვთ სადილის გეგმა დღეს? დაჯავშნეთ მაგიდა",
+            "description": "შეადგინეთ ონლაინ ჯავშანი, წაიკითხეთ სტუმრების შეფასებები და დააგროვეთ ქულები უფასო კერძებისთვის. ეს არის რეალურ დროში მომუშავე ონლაინ ჯავშნის სისტემა.",
+            "support_label": "24/7 მხარდაჭერის ცენტრი",
+            "support_phone": "577 42 29 42",
+            "background_image": "demo/reservation/comboo-offer-bg.jpg",
+            "form_title": "მაგიდის დაჯავშნა",
+            "form_description": "გთხოვთ ზუსტად შეავსოთ ქვემოთ მოცემული ფორმა, რათა უკეთესად შეგემსახუროთ!.. კეთილი იყოს თქვენი მობრძანება!"
+          },
+          "en": {
+            "sub_title": "Special Combo Offer",
+            "title": "Have any Dinner Plan Today? Reserve Table",
+            "description": "Make online reservations, read restaurant reviews from dinners, and earn points towards free meals. OpenTable is a real time online reservation.",
+            "support_label": "24/7 Support center",
+            "support_phone": "577 42 29 42",
+            "background_image": "demo/reservation/comboo-offer-bg.jpg",
+            "form_title": "booking table",
+            "form_description": "Please fill the form below accurately to enable us serve you better!.. welcome!"
+          }
+        }
+      },
+      {
+        "type": "brand_strip",
+        "data": {
+          "ka": {
+            "logos": [
+              "demo/reservation/b-1.png",
+              "demo/reservation/b-2.png",
+              "demo/reservation/b-3.png",
+              "demo/reservation/b-4.png",
+              "demo/reservation/b-5.png",
+              "demo/reservation/b-6.png"
+            ]
+          },
+          "en": {
+            "logos": [
+              "demo/reservation/b-1.png",
+              "demo/reservation/b-2.png",
+              "demo/reservation/b-3.png",
+              "demo/reservation/b-4.png",
+              "demo/reservation/b-5.png",
+              "demo/reservation/b-6.png"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "menu": {
+    "template": "menu",
+    "slugs": {
+      "ka": "menu",
+      "en": "food-menu"
+    },
+    "titles": {
+      "ka": "მენიუ",
+      "en": "Our Menu"
+    },
+    "block_types": [
+      "menu_full",
+      "menu_special_banner",
+      "menu_best_selling",
+      "menu_best_food"
+    ],
+    "blocks": [
+      {
+        "type": "menu_full",
+        "data": {
+          "ka": {
+            "sub_title": "საცხობის მენიუ",
+            "title": "კატეგორიები და პროდუქცია"
+          },
+          "en": {
+            "sub_title": "Bakery menu",
+            "title": "Categories and products"
+          }
+        }
+      },
+      {
+        "type": "menu_special_banner",
+        "data": {
+          "ka": {
+            "sub_text": "სპეციალური მენიუ",
+            "title": "სპეციალური შეთავაზება",
+            "text": "სცადეთ ხაჭაპური აჭარული — ყველით და კვერცხით, ჩვენებურად გამომცხვარი",
+            "image": "demo/menu/pizza-image.png",
+            "background_image": "demo/menu/offer-bg.jpg",
+            "button_text": "შეუკვეთე ახლავე",
+            "button_link": "/contact"
+          },
+          "en": {
+            "sub_text": "Special Menu",
+            "title": "Special Offer",
+            "text": "Try our Khachapuri Adjaruli — cheese and egg baked our way",
+            "image": "demo/menu/pizza-image.png",
+            "background_image": "demo/menu/offer-bg.jpg",
+            "button_text": "Order Now",
+            "button_link": "/contact"
+          }
+        }
+      }
+    ]
   }
 }

@@ -82,6 +82,37 @@ class SiteDemoSeederTest extends TestCase
         $this->assertCount(3, $gallery['images']);
     }
 
+    public function test_demo_seeder_creates_every_site_page(): void
+    {
+        Storage::fake('public');
+        $this->createLanguage('ka');
+        $this->createLanguage('en', false);
+
+        $this->seed(SiteDemoSeeder::class);
+
+        $expected = ['about' => 'about-us', 'contact' => 'contact-us', 'faq' => 'faqs', 'gallery' => 'our-gallery',
+            'history' => 'our-history', 'reservation' => 'book-a-table', 'menu' => 'food-menu'];
+        foreach ($expected as $template => $enSlug) {
+            $page = Page::query()->where('template', $template)->sole();
+            $this->assertSame($template, $page->translations()->where('locale', 'ka')->value('slug'));
+            $this->assertSame($enSlug, $page->translations()->where('locale', 'en')->value('slug'));
+        }
+
+        $menu = Page::query()->where('template', 'menu')->sole();
+        $this->assertSame(SitePageTemplateSeeder::TEMPLATES['menu']['blocks'], $menu->block_types);
+        $this->assertSame(['menu_full', 'menu_special_banner'],
+            $menu->translations()->where('locale', 'ka')->sole()->blocks()->orderBy('sort_order')->pluck('type')->all());
+
+        $faq = Page::query()->where('template', 'faq')->sole()->translations()->where('locale', 'en')->sole()
+            ->blocks()->sole()->data;
+        $this->assertNotEmpty($faq['items'][0]['question']);
+
+        $gallery = Page::query()->where('template', 'gallery')->sole()->translations()->where('locale', 'ka')->sole()
+            ->blocks()->sole()->data;
+        $this->assertCount(14, $gallery['images']);
+        Storage::disk('public')->assertExists($gallery['images'][0]);
+    }
+
     public function test_page_api_returns_about_blocks_in_order_for_both_locales(): void
     {
         Storage::fake('public');
