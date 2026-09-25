@@ -93,7 +93,7 @@ class SiteDemoSeederTest extends TestCase
         $this->seed(SiteDemoSeeder::class);
 
         $expected = ['about' => 'about-us', 'contact' => 'contact-us', 'faq' => 'faqs', 'gallery' => 'our-gallery',
-            'history' => 'our-history', 'reservation' => 'book-a-table', 'menu' => 'food-menu'];
+            'history' => 'our-history', 'reservation' => 'book-a-table', 'menu' => 'food-menu', 'blog' => 'our-blog'];
         foreach ($expected as $template => $enSlug) {
             $page = Page::query()->where('template', $template)->sole();
             $this->assertSame($template, $page->translations()->where('locale', 'ka')->value('slug'));

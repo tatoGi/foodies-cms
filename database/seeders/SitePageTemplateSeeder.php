@@ -34,6 +34,8 @@ class SitePageTemplateSeeder extends Seeder
         'history' => ['ka' => 'ისტორია', 'en' => 'History', 'blocks' => ['history_top', 'history_timeline']],
         'reservation' => ['ka' => 'ჯავშანი', 'en' => 'Reservation', 'blocks' => ['reservation_feature', 'reservation_combo_offer', 'brand_strip']],
         'menu' => ['ka' => 'მენიუ', 'en' => 'Menu', 'blocks' => ['menu_full', 'menu_special_banner', 'menu_best_selling', 'menu_best_food']],
+        // Posts come from the blog itself; the page holds the title, banner image and SEO of the blog list.
+        'blog' => ['ka' => 'ბლოგი', 'en' => 'Blog', 'blocks' => []],
     ];
 
     public function run(): void
