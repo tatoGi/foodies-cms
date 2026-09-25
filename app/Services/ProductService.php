@@ -14,6 +14,7 @@ use App\Models\ProductTranslation;
 use App\Repositories\Contracts\BlockTypeRepositoryInterface;
 use App\Repositories\Contracts\LanguageRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Services\Website\RevalidateFrontendService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ class ProductService
         private readonly BlockTypeRepositoryInterface $blockTypeRepository,
         private readonly LanguageRepositoryInterface $languageRepository,
         private readonly BlockNormalizationService $blockNormalizationService,
+        private readonly RevalidateFrontendService $frontend,
     ) {}
 
     /**
@@ -110,6 +112,7 @@ class ProductService
         $locale = app()->getLocale();
 
         return ProductCategory::query()
+            ->where(fn ($query) => $query->where('is_active', true)->orWhereHas('products'))
             ->with('translations')
             ->orderBy('sort_order')
             ->get()
@@ -195,7 +198,7 @@ class ProductService
 
     public function create(StoreProductRequest $request): Product
     {
-        return DB::transaction(function () use ($request): Product {
+        $product = DB::transaction(function () use ($request): Product {
             $product = $this->productRepository->create([
                 'sort_order' => $this->productRepository->nextSortOrder(),
                 'sku' => trim((string) $request->input('sku', '')),
@@ -231,11 +234,14 @@ class ProductService
 
             return $product;
         });
+        $this->refreshFrontend($product);
+
+        return $product;
     }
 
     public function update(UpdateProductRequest $request, Product $product): Product
     {
-        return DB::transaction(function () use ($request, $product): Product {
+        $product = DB::transaction(function () use ($request, $product): Product {
             $fromPos = $product->isSyncedFromPos();
             $names = (array) $request->input('names', []);
             if ($fromPos) {
@@ -282,16 +288,39 @@ class ProductService
 
             return $product;
         });
+        $this->refreshFrontend($product);
+
+        return $product;
     }
 
     public function delete(Product $product): void
     {
+        $tags = $this->frontendTags($product);
         $this->productRepository->delete($product);
+        $this->frontend->revalidate($tags);
     }
 
     public function reorder(array $orderedIds, int $page = 1, int $perPage = 15): void
     {
         $this->productRepository->reorderByIds($orderedIds, $page, $perPage);
+        $this->frontend->revalidate(['menu', 'pages']);
+    }
+
+    /** Featured, published and ordering changes show on the home page (pages) and menu at once. */
+    private function refreshFrontend(Product $product): void
+    {
+        $this->frontend->revalidate($this->frontendTags($product));
+    }
+
+    /** @return list<string> */
+    private function frontendTags(Product $product): array
+    {
+        $slugs = $product->translations()->pluck('slug')
+            ->filter(fn (mixed $slug): bool => is_string($slug) && $slug !== '')
+            ->map(fn (string $slug): string => 'product:'.$slug)
+            ->all();
+
+        return array_values(array_merge(['menu', 'pages'], $slugs));
     }
 
     private function syncTranslations(

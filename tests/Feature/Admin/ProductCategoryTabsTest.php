@@ -47,13 +47,29 @@ class ProductCategoryTabsTest extends TestCase
             ->assertSee('ძველი პროდუქტი');
     }
 
-    private function category(string $name, int $sort): ProductCategory
+    public function test_inactive_empty_categories_are_not_shown_as_tabs(): void
+    {
+        $admin = $this->createAdminUser();
+        $this->category('ძველი კატეგორია', 1, false);
+        $retired = $this->category('გაუქმებული კატეგორია', 2, false);
+        $this->product($retired, 'დარჩენილი კერძი', 'pos-3');
+        $this->category('შაურმა', 3);
+
+        $this->actingAs($admin, 'admin')
+            ->get(route('admin.products.index'))
+            ->assertOk()
+            ->assertSee('შაურმა')
+            ->assertSee('გაუქმებული კატეგორია')
+            ->assertDontSee('ძველი კატეგორია');
+    }
+
+    private function category(string $name, int $sort, bool $active = true): ProductCategory
     {
         $category = ProductCategory::query()->create([
             'external_source' => 'pos',
             'external_id' => $sort,
             'sort_order' => $sort,
-            'is_active' => true,
+            'is_active' => $active,
         ]);
         ProductCategoryTranslation::query()->create([
             'product_category_id' => $category->id,

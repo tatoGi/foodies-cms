@@ -30,6 +30,8 @@ class ProductRepository implements ProductRepositoryInterface
     public function categoriesWithProductCounts(string $search, string $locale): array
     {
         return ProductCategory::query()
+            // A category the POS deleted stays deactivated; hide it once nothing points at it.
+            ->where(fn (Builder $query) => $query->where('is_active', true)->orWhereHas('products'))
             ->with('translations')
             ->withCount(['products as products_count' => function (Builder $query) use ($search): void {
                 $this->applySearch($query, $search);
