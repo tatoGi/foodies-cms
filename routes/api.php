@@ -44,7 +44,10 @@ Route::prefix('web')->group(function () {
     });
 
     Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('me')->group(function () {
-        Route::get('/', [AuthController::class, 'me'])->name('api.website.me');
+        Route::get('/', [\App\Http\Controllers\Website\ProfileController::class, 'show'])->name('api.website.me');
+        Route::put('/', [\App\Http\Controllers\Website\ProfileController::class, 'update']);
+        Route::delete('/', [\App\Http\Controllers\Website\ProfileController::class, 'destroy']);
+        Route::put('/password', [\App\Http\Controllers\Website\ProfileController::class, 'password']);
     });
 
     Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('checkout')->group(function () {

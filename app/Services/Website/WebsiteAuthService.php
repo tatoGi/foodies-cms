@@ -117,6 +117,45 @@ class WebsiteAuthService
         ];
     }
 
+    /** @return array<string, mixed> */
+    public function updateProfile(User $user, array $data): array
+    {
+        $user->update([
+            'name' => trim((string) $data['name']),
+            'phone' => GeorgianPhone::normalize((string) $data['phone']),
+        ]);
+
+        return $this->userPayload($user->fresh() ?? $user);
+    }
+
+    /** Keeps this device signed in and signs out every other one. @return array<string, mixed> */
+    public function changePassword(User $user, ?string $current, string $new): array
+    {
+        $this->assertPassword($user, $current);
+
+        $user->forceFill(['password' => $new])->save();
+        $currentTokenId = $user->currentAccessToken()?->getKey();
+        $user->tokens()->when($currentTokenId !== null, fn ($query) => $query->whereKeyNot($currentTokenId))->delete();
+
+        return $this->userPayload($user->fresh() ?? $user);
+    }
+
+    public function deleteAccount(User $user, ?string $password): void
+    {
+        $this->assertPassword($user, $password);
+
+        $user->tokens()->delete();
+        $user->delete();
+    }
+
+    /** Users with a password must confirm it; Google-only users have none to confirm. */
+    private function assertPassword(User $user, ?string $password): void
+    {
+        if ($user->password !== null && ! Hash::check((string) $password, $user->password)) {
+            throw new WebApiException('invalid_password', 'The password is incorrect.');
+        }
+    }
+
     private function sendCode(string $email, string $purpose, string $locale): void
     {
         $code = $this->codes->issue($email, $purpose);

@@ -43,11 +43,6 @@ class AuthController extends Controller
         return response()->json($this->auth->login($request->validated(), (string) $request->input('locale', 'ka')));
     }
 
-    public function me(Request $request): JsonResponse
-    {
-        return response()->json(['user' => $this->auth->userPayload($request->user())]);
-    }
-
     public function logout(Request $request): JsonResponse
     {
         $this->auth->logout($request->user());
