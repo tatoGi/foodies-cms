@@ -17,8 +17,6 @@ class WebsiteAuthService
      */
     public function register(array $data): array
     {
-        $token = $this->plainToken();
-
         $user = User::query()->create([
             'name' => trim((string) $data['name']),
             'email' => strtolower(trim((string) $data['email'])),
@@ -28,9 +26,7 @@ class WebsiteAuthService
             'remember_token' => Str::random(100),
         ]);
 
-        $user->forceFill([
-            'api_token' => hash('sha256', $token),
-        ])->save();
+        $token = $this->issueToken($user);
 
         return [
             'token' => $token,
@@ -54,10 +50,7 @@ class WebsiteAuthService
             ]);
         }
 
-        $token = $this->plainToken();
-        $user->forceFill([
-            'api_token' => hash('sha256', $token),
-        ])->save();
+        $token = $this->issueToken($user);
 
         return [
             'token' => $token,
@@ -83,9 +76,7 @@ class WebsiteAuthService
 
     public function logout(User $user): void
     {
-        $user->forceFill([
-            'api_token' => null,
-        ])->save();
+        $user->currentAccessToken()?->delete();
     }
 
     /**
@@ -102,8 +93,8 @@ class WebsiteAuthService
         ];
     }
 
-    private function plainToken(): string
+    private function issueToken(User $user): string
     {
-        return Str::random(60);
+        return $user->createToken('web', ['*'], now()->addDays(30))->plainTextToken;
     }
 }

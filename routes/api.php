@@ -38,10 +38,13 @@ Route::prefix('web')->group(function () {
         Route::post('/register', [AuthController::class, 'register'])->name('api.website.auth.register');
         Route::post('/login', [AuthController::class, 'login'])->name('api.website.auth.login');
         Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->group(function () {
-            Route::get('/me', [AuthController::class, 'me'])->name('api.website.auth.me');
             Route::put('/me', [AuthController::class, 'update'])->name('api.website.auth.update');
             Route::post('/logout', [AuthController::class, 'logout'])->name('api.website.auth.logout');
         });
+    });
+
+    Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('me')->group(function () {
+        Route::get('/', [AuthController::class, 'me'])->name('api.website.me');
     });
 
     Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('checkout')->group(function () {

@@ -227,10 +227,8 @@ class BogPaymentEdgeCasesTest extends TestCase
 
     public function test_authenticated_user_can_delete_saved_card(): void
     {
-        $rawToken = 'test-api-token-'.uniqid();
-        $user = User::factory()->create([
-            'api_token' => hash('sha256', $rawToken),
-        ]);
+        $user = User::factory()->create();
+        $rawToken = $user->createToken('web', ['*'], now()->addDays(30))->plainTextToken;
         $card = $this->makeBogCard($user);
 
         $this->withToken($rawToken)
@@ -242,9 +240,9 @@ class BogPaymentEdgeCasesTest extends TestCase
 
     public function test_user_cannot_delete_another_users_card(): void
     {
-        $rawToken = 'test-api-token-other-'.uniqid();
         $owner = User::factory()->create();
-        User::factory()->create(['api_token' => hash('sha256', $rawToken)]);
+        $otherUser = User::factory()->create();
+        $rawToken = $otherUser->createToken('web', ['*'], now()->addDays(30))->plainTextToken;
 
         $card = $this->makeBogCard($owner);
 

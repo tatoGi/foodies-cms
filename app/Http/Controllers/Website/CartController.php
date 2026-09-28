@@ -65,13 +65,6 @@ class CartController extends Controller
 
     private function resolveFrontendUser(Request $request): ?User
     {
-        $token = trim((string) $request->bearerToken());
-        if ($token === '') {
-            return null;
-        }
-
-        return User::query()
-            ->where('api_token', hash('sha256', $token))
-            ->first();
+        return \App\Http\Middleware\AuthenticateFrontendUser::userFromToken($request);
     }
 }
