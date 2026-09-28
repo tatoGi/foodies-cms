@@ -4,74 +4,90 @@ declare(strict_types=1);
 
 namespace App\Services\Website;
 
+use App\Exceptions\WebApiException;
+use App\Mail\VerificationCodeMail;
 use App\Models\User;
+use App\Support\GeorgianPhone;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
 
 class WebsiteAuthService
 {
-    /**
-     * @param  array{name:string,email:string,phone:string,address:string,password:string}  $data
-     * @return array{token:string,user:array<string,mixed>}
-     */
-    public function register(array $data): array
+    public function __construct(
+        private readonly VerificationCodeService $codes,
+    ) {}
+
+    public static function normalizeEmail(string $email): string
     {
-        $user = User::query()->create([
-            'name' => trim((string) $data['name']),
-            'email' => strtolower(trim((string) $data['email'])),
-            'phone' => trim((string) $data['phone']),
-            'address' => trim((string) $data['address']),
-            'password' => (string) $data['password'],
-            'remember_token' => Str::random(100),
-        ]);
-
-        $token = $this->issueToken($user);
-
-        return [
-            'token' => $token,
-            'user' => $this->userPayload($user),
-        ];
+        return strtolower(trim($email));
     }
 
-    /**
-     * @param  array{email:string,password:string}  $data
-     * @return array{token:string,user:array<string,mixed>}
-     */
-    public function login(array $data): array
+    public static function mailLocale(?string $locale): string
     {
-        $user = User::query()
-            ->where('email', strtolower(trim((string) $data['email'])))
-            ->first();
+        return $locale === 'en' ? 'en' : 'ka';
+    }
 
-        if (! $user instanceof User || ! Hash::check((string) $data['password'], (string) $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => 'The provided credentials do not match our records.',
-            ]);
+    /** Creates (or refreshes an unverified) account and e-mails a code. A verified e-mail gets the same answer and no mail. */
+    public function register(array $data, string $locale): void
+    {
+        $email = self::normalizeEmail((string) $data['email']);
+        $user = User::query()->where('email', $email)->first();
+        if ($user instanceof User && $user->email_verified_at !== null) {
+            return;
         }
 
-        $token = $this->issueToken($user);
-
-        return [
-            'token' => $token,
-            'user' => $this->userPayload($user),
+        $attributes = [
+            'name' => trim((string) $data['name']),
+            'phone' => GeorgianPhone::normalize((string) $data['phone']),
+            'password' => (string) $data['password'],
         ];
+        $user instanceof User
+            ? $user->update($attributes)
+            : User::query()->create(['email' => $email] + $attributes);
+
+        $this->sendCode($email, VerificationCodeService::PURPOSE_VERIFY, $locale);
     }
 
-    /**
-     * @param  array{name:string,email:string,phone:string,address:string}  $data
-     * @return array<string, mixed>
-     */
-    public function updateProfile(User $user, array $data): array
+    /** @return array{token: string, user: array<string, mixed>} */
+    public function verifyEmail(string $email, string $code): array
     {
-        $user->update([
-            'name' => trim((string) $data['name']),
-            'email' => strtolower(trim((string) $data['email'])),
-            'phone' => trim((string) $data['phone']),
-            'address' => trim((string) $data['address']),
-        ]);
+        $email = self::normalizeEmail($email);
+        $user = User::query()->where('email', $email)->first();
+        if (! $user instanceof User || ! $this->codes->consume($email, VerificationCodeService::PURPOSE_VERIFY, $code)) {
+            throw new WebApiException('invalid_code', 'The code is invalid or has expired.');
+        }
 
-        return $this->userPayload($user->fresh() ?? $user);
+        if ($user->email_verified_at === null) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
+        return $this->session($user);
+    }
+
+    public function resendVerification(string $email, string $locale): void
+    {
+        $email = self::normalizeEmail($email);
+        $user = User::query()->where('email', $email)->first();
+        if ($user instanceof User && $user->email_verified_at === null) {
+            $this->sendCode($email, VerificationCodeService::PURPOSE_VERIFY, $locale);
+        }
+    }
+
+    /** @return array{token: string, user: array<string, mixed>} */
+    public function login(array $data, string $locale): array
+    {
+        $email = self::normalizeEmail((string) $data['email']);
+        $user = User::query()->where('email', $email)->first();
+        if (! $user instanceof User || $user->password === null || ! Hash::check((string) $data['password'], $user->password)) {
+            throw new WebApiException('invalid_credentials', 'The e-mail or password is incorrect.');
+        }
+
+        if ($user->email_verified_at === null) {
+            $this->sendCode($email, VerificationCodeService::PURPOSE_VERIFY, $locale);
+            throw new WebApiException('email_not_verified', 'Confirm your e-mail first; a new code was sent.', 403);
+        }
+
+        return $this->session($user);
     }
 
     public function logout(User $user): void
@@ -79,9 +95,16 @@ class WebsiteAuthService
         $user->currentAccessToken()?->delete();
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array{token: string, user: array<string, mixed>} */
+    public function session(User $user): array
+    {
+        return [
+            'token' => $user->createToken('web', ['*'], now()->addDays(30))->plainTextToken,
+            'user' => $this->userPayload($user),
+        ];
+    }
+
+    /** @return array{id: int, name: string, email: string, phone: string, has_password: bool, google_linked: bool} */
     public function userPayload(User $user): array
     {
         return [
@@ -89,12 +112,14 @@ class WebsiteAuthService
             'name' => (string) $user->name,
             'email' => (string) $user->email,
             'phone' => (string) ($user->phone ?? ''),
-            'address' => (string) ($user->address ?? ''),
+            'has_password' => $user->password !== null,
+            'google_linked' => $user->google_id !== null,
         ];
     }
 
-    private function issueToken(User $user): string
+    private function sendCode(string $email, string $purpose, string $locale): void
     {
-        return $user->createToken('web', ['*'], now()->addDays(30))->plainTextToken;
+        $code = $this->codes->issue($email, $purpose);
+        Mail::to($email)->queue(new VerificationCodeMail($code, $purpose, self::mailLocale($locale)));
     }
 }

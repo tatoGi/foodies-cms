@@ -35,12 +35,12 @@ Route::prefix('pos/v1')->middleware(\App\Http\Middleware\AuthenticatePosDevice::
 
 Route::prefix('web')->group(function () {
     Route::prefix('auth')->group(function () {
-        Route::post('/register', [AuthController::class, 'register'])->name('api.website.auth.register');
-        Route::post('/login', [AuthController::class, 'login'])->name('api.website.auth.login');
-        Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->group(function () {
-            Route::put('/me', [AuthController::class, 'update'])->name('api.website.auth.update');
-            Route::post('/logout', [AuthController::class, 'logout'])->name('api.website.auth.logout');
-        });
+        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:web-register');
+        Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->middleware('throttle:web-login');
+        Route::post('/verify-email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:web-codes');
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:web-login');
+        Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)
+            ->post('/logout', [AuthController::class, 'logout']);
     });
 
     Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('me')->group(function () {
