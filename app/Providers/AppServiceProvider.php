@@ -28,7 +28,10 @@ use App\Services\Payments\MockBogPaymentService;
 use App\Support\BogMode;
 use Bog\Payment\Services\BogAuthService;
 use Bog\Payment\Services\BogPaymentService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -94,5 +97,12 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('adminContactNotifications', $notifications);
         });
+
+        // Site customer auth (spec §10). Keys use the real client IP (see trustProxies in bootstrap/app.php).
+        RateLimiter::for('web-login', fn (Request $request) => Limit::perMinute(5)
+            ->by(strtolower((string) $request->input('email')).'|'.$request->ip()));
+        RateLimiter::for('web-codes', fn (Request $request) => Limit::perMinutes(10, 3)
+            ->by(strtolower((string) $request->input('email')).'|'.$request->ip()));
+        RateLimiter::for('web-register', fn (Request $request) => Limit::perHour(5)->by((string) $request->ip()));
     }
 }

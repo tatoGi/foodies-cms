@@ -34,6 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', HandleInertiaRequests::class);
 
         $middleware->redirectGuestsTo('/admin/login');
+
+        // Next.js (BFF) runs on the same server and forwards the visitor's IP in X-Forwarded-For.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
