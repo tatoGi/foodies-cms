@@ -51,6 +51,10 @@ Route::prefix('web')->group(function () {
         Route::put('/', [\App\Http\Controllers\Website\ProfileController::class, 'update']);
         Route::delete('/', [\App\Http\Controllers\Website\ProfileController::class, 'destroy']);
         Route::put('/password', [\App\Http\Controllers\Website\ProfileController::class, 'password']);
+        Route::get('/addresses', [\App\Http\Controllers\Website\AddressController::class, 'index']);
+        Route::post('/addresses', [\App\Http\Controllers\Website\AddressController::class, 'store']);
+        Route::put('/addresses/{id}', [\App\Http\Controllers\Website\AddressController::class, 'update'])->whereNumber('id');
+        Route::delete('/addresses/{id}', [\App\Http\Controllers\Website\AddressController::class, 'destroy'])->whereNumber('id');
     });
 
     Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('checkout')->group(function () {
