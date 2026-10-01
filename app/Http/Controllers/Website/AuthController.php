@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Website\AuthLoginRequest;
 use App\Http\Requests\Website\AuthRegisterRequest;
 use App\Http\Requests\Website\EmailOnlyRequest;
+use App\Http\Requests\Website\PasswordResetRequest;
 use App\Http\Requests\Website\VerifyEmailRequest;
 use App\Services\Website\WebsiteAuthService;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +42,22 @@ class AuthController extends Controller
     public function login(AuthLoginRequest $request): JsonResponse
     {
         return response()->json($this->auth->login($request->validated(), (string) $request->input('locale', 'ka')));
+    }
+
+    public function forgotPassword(EmailOnlyRequest $request): JsonResponse
+    {
+        $this->auth->forgotPassword((string) $request->input('email'), (string) $request->input('locale', 'ka'));
+
+        return response()->json(['status' => 'code_sent'], 202);
+    }
+
+    public function resetPassword(PasswordResetRequest $request): JsonResponse
+    {
+        return response()->json($this->auth->resetPassword(
+            (string) $request->input('email'),
+            (string) $request->input('code'),
+            (string) $request->input('password'),
+        ));
     }
 
     public function logout(Request $request): JsonResponse

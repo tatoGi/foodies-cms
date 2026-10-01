@@ -90,6 +90,30 @@ class WebsiteAuthService
         return $this->session($user);
     }
 
+    public function forgotPassword(string $email, string $locale): void
+    {
+        $email = self::normalizeEmail($email);
+        $user = User::query()->where('email', $email)->first();
+        if ($user instanceof User && $user->email_verified_at !== null) {
+            $this->sendCode($email, VerificationCodeService::PURPOSE_RESET, $locale);
+        }
+    }
+
+    /** @return array{token: string, user: array<string, mixed>} */
+    public function resetPassword(string $email, string $code, string $password): array
+    {
+        $email = self::normalizeEmail($email);
+        $user = User::query()->where('email', $email)->first();
+        if (! $user instanceof User || ! $this->codes->consume($email, VerificationCodeService::PURPOSE_RESET, $code)) {
+            throw new WebApiException('invalid_code', 'The code is invalid or has expired.');
+        }
+
+        $user->forceFill(['password' => $password])->save();
+        $user->tokens()->delete();
+
+        return $this->session($user);
+    }
+
     public function logout(User $user): void
     {
         $user->currentAccessToken()?->delete();

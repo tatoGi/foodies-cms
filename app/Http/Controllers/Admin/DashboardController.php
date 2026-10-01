@@ -36,14 +36,14 @@ class DashboardController extends Controller
         $usagePercent = $totalGB > 0 ? min(100, round(($usedGB / $totalGB) * 100)) : 0;
 
         return view('admin.dashboard', [
-            'totalPages'   => $totalPages,
-            'totalPosts'   => $totalPosts,
-            'totalMedia'   => $totalMedia,
+            'totalPages' => $totalPages,
+            'totalPosts' => $totalPosts,
+            'totalMedia' => $totalMedia,
             'totalProducts' => $totalProducts,
-            'activities'   => $activities,
-            'storage'      => [
-                'used'    => $usedGB,
-                'total'   => $totalGB,
+            'activities' => $activities,
+            'storage' => [
+                'used' => $usedGB,
+                'total' => $totalGB,
                 'percent' => $usagePercent,
             ],
         ]);

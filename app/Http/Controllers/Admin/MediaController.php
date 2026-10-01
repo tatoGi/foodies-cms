@@ -108,7 +108,7 @@ class MediaController extends Controller
                 'original_name' => ['required', 'string', 'max:255'],
                 'file' => ['required', 'file'],
             ]);
-        
+
             try {
                 $result = $this->uploadService->handleChunkUpload([
                     'upload_id' => $validated['upload_id'],
@@ -125,10 +125,8 @@ class MediaController extends Controller
                 $allowedExtensions = collect((array) config('media.allowed_types', []))->flatten()->implode(', ');
 
                 $message = match (true) {
-                    str_contains($e->getMessage(), 'not allowed') =>
-                        "ფაილის ტიპი დაუშვებელია. დასაშვები ფორმატებია: {$allowedExtensions}.",
-                    str_contains($e->getMessage(), 'size limit') =>
-                        "ფაილი ზომით გადიდებულია. სურათებისთვის მაქსიმუმი {$maxImageMb}MB, სხვა ფაილებისთვის {$maxFileMb}MB.",
+                    str_contains($e->getMessage(), 'not allowed') => "ფაილის ტიპი დაუშვებელია. დასაშვები ფორმატებია: {$allowedExtensions}.",
+                    str_contains($e->getMessage(), 'size limit') => "ფაილი ზომით გადიდებულია. სურათებისთვის მაქსიმუმი {$maxImageMb}MB, სხვა ფაილებისთვის {$maxFileMb}MB.",
                     default => $e->getMessage(),
                 };
 
@@ -181,8 +179,8 @@ class MediaController extends Controller
             'files.*' => ['file'],
             'file' => ['nullable', 'file'],
         ], [
-            'files.*.file' => "ფაილი ვერ აიტვირთა. დარწმუნდით, რომ ფაილი დაზიანებული არ არის.",
-            'file.file' => "ფაილი ვერ აიტვირთა. დარწმუნდით, რომ ფაილი დაზიანებული არ არის.",
+            'files.*.file' => 'ფაილი ვერ აიტვირთა. დარწმუნდით, რომ ფაილი დაზიანებული არ არის.',
+            'file.file' => 'ფაილი ვერ აიტვირთა. დარწმუნდით, რომ ფაილი დაზიანებული არ არის.',
         ]);
 
         $files = [];
@@ -208,10 +206,8 @@ class MediaController extends Controller
                 ->all();
         } catch (\InvalidArgumentException $e) {
             $message = match (true) {
-                str_contains($e->getMessage(), 'not allowed') =>
-                    "ფაილის ტიპი დაუშვებელია. დასაშვები ფორმატებია: {$allowedExtensions}.",
-                str_contains($e->getMessage(), 'size limit') =>
-                    "ფაილი ზომით გადიდებულია. სურათებისთვის მაქსიმუმი {$maxImageMb}MB, სხვა ფაილებისთვის {$maxFileMb}MB.",
+                str_contains($e->getMessage(), 'not allowed') => "ფაილის ტიპი დაუშვებელია. დასაშვები ფორმატებია: {$allowedExtensions}.",
+                str_contains($e->getMessage(), 'size limit') => "ფაილი ზომით გადიდებულია. სურათებისთვის მაქსიმუმი {$maxImageMb}MB, სხვა ფაილებისთვის {$maxFileMb}MB.",
                 default => $e->getMessage(),
             };
 
