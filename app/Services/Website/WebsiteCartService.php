@@ -9,6 +9,7 @@ use App\Models\ProductTranslation;
 use App\Models\ShoppingCart;
 use App\Models\User;
 use App\Repositories\Contracts\WebsiteCartRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -258,7 +259,7 @@ class WebsiteCartService
                 'product_id' => (int) $product->id,
                 'slug' => $translation?->slug,
                 'name' => $translation?->title ?: 'Product #'.$product->id,
-                'image' => $product->cover_image,
+                'image' => $this->assetUrl($product->cover_image),
                 'category' => (string) ($product->category ?? ''),
                 'quantity' => (int) $item->quantity,
                 'unit_price' => $unitPrice,
@@ -295,5 +296,18 @@ class WebsiteCartService
         return $product->translations->firstWhere('locale', $normalizedLocale)
             ?? $product->translations->firstWhere('locale', $fallbackLocale)
             ?? $product->translations->first();
+    }
+
+    private function assetUrl(mixed $path): ?string
+    {
+        $value = trim((string) $path);
+        if ($value === '') {
+            return null;
+        }
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, '/')) {
+            return $value;
+        }
+
+        return Storage::disk('public')->url($value);
     }
 }
