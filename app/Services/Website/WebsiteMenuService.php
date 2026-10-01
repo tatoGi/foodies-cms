@@ -96,6 +96,15 @@ class WebsiteMenuService
         ];
     }
 
+    /** One dish in the same shape as the menu, for lists outside the menu (favorites). @return array<string, mixed> */
+    public function productCard(Product $product, string $requestedLocale): array
+    {
+        [$locale, $fallback] = $this->locales($requestedLocale);
+        $product->loadMissing(['translations', 'addons', 'ingredients']);
+
+        return $this->productPayload($product, $locale, $fallback);
+    }
+
     /**
      * @return array{0: string, 1: string}
      */

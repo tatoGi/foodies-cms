@@ -14,7 +14,6 @@ use App\Http\Controllers\Website\PageController;
 use App\Http\Controllers\Website\PostController;
 use App\Http\Controllers\Website\ProductController;
 use App\Http\Controllers\Website\SearchController;
-use App\Http\Controllers\Website\WishlistController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +54,9 @@ Route::prefix('web')->group(function () {
         Route::post('/addresses', [\App\Http\Controllers\Website\AddressController::class, 'store']);
         Route::put('/addresses/{id}', [\App\Http\Controllers\Website\AddressController::class, 'update'])->whereNumber('id');
         Route::delete('/addresses/{id}', [\App\Http\Controllers\Website\AddressController::class, 'destroy'])->whereNumber('id');
+        Route::get('/favorites', [\App\Http\Controllers\Website\FavoriteController::class, 'index']);
+        Route::post('/favorites', [\App\Http\Controllers\Website\FavoriteController::class, 'store']);
+        Route::delete('/favorites/{productId}', [\App\Http\Controllers\Website\FavoriteController::class, 'destroy'])->whereNumber('productId');
     });
 
     Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('checkout')->group(function () {
@@ -64,12 +66,6 @@ Route::prefix('web')->group(function () {
         Route::post('/cards/pay', [CheckoutController::class, 'payWithSavedCard'])->name('api.website.checkout.cards.pay');
         Route::post('/cards/{card}/default', [CheckoutController::class, 'setDefaultCard'])->name('api.website.checkout.cards.default');
         Route::delete('/cards/{card}', [CheckoutController::class, 'deleteCard'])->name('api.website.checkout.cards.delete');
-    });
-
-    Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)->prefix('wishlist')->group(function () {
-        Route::get('/', [WishlistController::class, 'index'])->name('api.website.wishlist.index');
-        Route::post('/', [WishlistController::class, 'store'])->name('api.website.wishlist.store');
-        Route::delete('/{productId}', [WishlistController::class, 'destroy'])->name('api.website.wishlist.destroy');
     });
 
     Route::get('/search', SearchController::class)->name('api.website.search');
