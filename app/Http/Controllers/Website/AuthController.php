@@ -66,4 +66,11 @@ class AuthController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function google(Request $request): JsonResponse
+    {
+        $request->validate(['id_token' => ['required', 'string', 'max:4096']]);
+
+        return response()->json($this->auth->loginWithGoogle((string) $request->input('id_token')));
+    }
 }

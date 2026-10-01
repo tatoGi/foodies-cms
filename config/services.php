@@ -120,6 +120,8 @@ return [
         'provider' => env('SEO_PROVIDER', 'openrouter'),
     ],
 
+    'google' => ['client_id' => env('GOOGLE_CLIENT_ID')],
+
     'frontend' => [
         'revalidate_url' => env('FRONTEND_REVALIDATE_URL'),
         'revalidate_secret' => env('FRONTEND_REVALIDATE_SECRET'),

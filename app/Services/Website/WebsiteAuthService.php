@@ -15,6 +15,7 @@ class WebsiteAuthService
 {
     public function __construct(
         private readonly VerificationCodeService $codes,
+        private readonly GoogleIdTokenVerifier $google,
     ) {}
 
     public static function normalizeEmail(string $email): string
@@ -184,5 +185,32 @@ class WebsiteAuthService
     {
         $code = $this->codes->issue($email, $purpose);
         Mail::to($email)->queue(new VerificationCodeMail($code, $purpose, self::mailLocale($locale)));
+    }
+
+    /** @return array{token: string, user: array<string, mixed>} */
+    public function loginWithGoogle(string $idToken): array
+    {
+        $google = $this->google->verify($idToken);
+
+        $user = User::query()->where('google_id', $google['sub'])->first()
+            ?? User::query()->where('email', $google['email'])->first();
+
+        if ($user instanceof User) {
+            $changes = ['google_id' => $google['sub']];
+            if ($user->email_verified_at === null) {
+                // An unconfirmed password account may belong to someone else: Google proves ownership, the old password goes.
+                $changes += ['email_verified_at' => now(), 'password' => null];
+            }
+            $user->forceFill($changes)->save();
+        } else {
+            $user = User::query()->create([
+                'name' => $google['name'] !== '' ? $google['name'] : strstr($google['email'], '@', true),
+                'email' => $google['email'],
+                'password' => null,
+            ]);
+            $user->forceFill(['google_id' => $google['sub'], 'email_verified_at' => now()])->save();
+        }
+
+        return $this->session($user);
     }
 }

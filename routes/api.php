@@ -39,6 +39,7 @@ Route::prefix('web')->group(function () {
         Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->middleware('throttle:web-login');
         Route::post('/verify-email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:web-codes');
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:web-login');
+        Route::post('/google', [AuthController::class, 'google'])->middleware('throttle:web-login');
         Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])->middleware('throttle:web-codes');
         Route::post('/password/reset', [AuthController::class, 'resetPassword'])->middleware('throttle:web-login');
         Route::middleware(\App\Http\Middleware\AuthenticateFrontendUser::class)
